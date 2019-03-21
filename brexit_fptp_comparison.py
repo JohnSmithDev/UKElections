@@ -31,9 +31,10 @@ DOT_DIAMETER = DOT_RADIUS * 2
 
 
 def output_file(output, filename):
-    with open(filename) as copystream:
+    output.flush()
+    with open(filename, mode='rb') as copystream:
         data = copystream.read()
-        output.write(data)
+        output.buffer.write(data)
 
 
 def output_svg(out, data):

@@ -52,7 +52,7 @@ table tr:nth-child(even){
 .party-uup { background: #48a5ee; }
 .party-alliance { background: #f6cb2f; }
 
-.party-independent { background: black; } /* Wikipedia uses a light grey */
+.party-independent { background: #444; color: white;} /* Wikipedia uses a light grey */
 .party-speaker { background: white; }
 
 

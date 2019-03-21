@@ -88,17 +88,27 @@ if __name__ == '__main__':
         print('''<!DOCTYPE html>\n<html>\n<head><style>''')
         output_file(sys.stdout, 'table_colours.css')
         print('.voted-leave { background: purple; color: white; }</style>')
-        print('<title>%s</title></head>\n<body>\n' % (title))
+        print('<title>%s</title></head>\n<script>\n' % (title))
+        output_file(sys.stdout, 'sorttable.js')
+
+
+        print('</script>\n<body>\n')
         print('<h1>%s</h1>\n' % (title))
-        print('<p>Based on petition data at %s (<b>%d signatures</b>)</p>' %
-              (petition_timestamp, signature_count))
+        print('''<p>Based on
+<a href="https://petition.parliament.uk/petitions/241584" rel="nofollow">petition</a>
+<a href="https://petition.parliament.uk/petitions/241584.json" rel="nofollow">data</a>
+ at %s (<b>%d signatures</b>)</p>''' % (petition_timestamp, signature_count))
+
 
         print('''<p>Asterisked vote leave percentages are estimates -
-         see <a href="%s">this link</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
+         see <a href="%s">this link</a>.  2017 General Election data
+        from the <a href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
 
         print('Party colours via <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.</p>')
         print('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
-               by <a href="https://twitter.com/JohnMMIX">John Smith</a>.</p>''')
+               by <a href="https://twitter.com/JohnMMIX">John Smith</a>.
+Table sorting via <a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
+</p>''')
 
         sig_above_margin = 0
         pro_leave_sig_above_margin = 0
@@ -116,10 +126,10 @@ if __name__ == '__main__':
               (sig_above_margin, pro_leave_sig_above_margin))
 
 
-        print('<table>\n<tr>\n')
+        print('<table class="sortable">\n<tr>\n')
         print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
         <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
-    <th>Petition to margin ratio</th>''')
+    <th>Percentage of electorate</th><th>Petition to winning margin ratio</th>''')
 
 
 
@@ -129,7 +139,7 @@ if __name__ == '__main__':
             sigs = petition_data[ons_code]
             leave_pc = '%2d%%%s'  % (
                 euref_data[ons_code].leave_pc,
-                ' ' if euref_data[ons_code].known_result else '*')
+                '&nbsp;' if euref_data[ons_code].known_result else '*')
             slug_party = slugify(conres.winning_party)
             # print(slug_party)
             #margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
@@ -148,6 +158,7 @@ if __name__ == '__main__':
 
 
                 cells.append(('numeric', '%s' % sigs))
+                cells.append(('numeric', '%.1f%%' % (100 * sigs / conres.constituency.electorate)))
                 ratio = (100 * sigs / margin)
                 if ratio >= 100:
                     ratio_class = 'threshold-100'
