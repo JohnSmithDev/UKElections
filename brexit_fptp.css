@@ -1,0 +1,67 @@
+/* brexit_fptp.css */
+
+text {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+text.h1 {
+  font-size: 20px;
+}
+
+text.credits {
+  font-size: 10px;
+}
+
+text.credits {
+  font-size: 10px;
+}
+
+text#constituency-details {
+  font-size: 10px;
+}
+
+
+.constituency {
+  stroke-width: 1px;
+}
+
+/* Colours are as used by Wikipedia, unless otherwise indicated */
+.second-place-conservative { stroke: #0087dc; }
+.second-place-ukip { stroke: #70147a; }
+.second-place-green-second-place { stroke: #6ab023; }
+.second-place-labour { stroke: #dc241f; }
+.second-place-liberal-democrats { stroke: #faa61a; }
+
+.second-place-snp { stroke: #fef987; }
+.second-place-plaid-cymru { stroke: #008142; }
+
+.second-place-dup { stroke: #d46a4c; }
+.second-place-sinn-fein { stroke: #326760; }
+.second-place-sdlp { stroke: #99ff66; }
+.second-place-uup { stroke: #48a5ee; }
+.second-place-alliance { stroke: #f6cb2f; }
+
+.second-place-independent { stroke: black; } /* Wikipedia uses a light grey */
+.second-place-speaker { stroke: white; }
+
+.grid-line-light {
+  stroke: #ccc;
+}
+.grid-line {
+  stroke: #aaa;
+}
+.grid-line-strong {
+  stroke: #444;
+}
+
+.x-axis-label {
+  font-size: 8px;
+  text-anchor: middle;
+}
+.y-axis-label {
+  font-size: 8px;
+  text-anchor: end;
+}
+
+
+/* End of brexit_fptp.css */

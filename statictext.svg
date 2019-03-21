@@ -1,0 +1,7 @@
+<text x="10" y="40" style="font-size: 30px;">
+  Hello world
+</text>
+
+<text x="10" y="80" style="font-size: 30px;" id="constituency-details">
+  View this in a browser to enable interactivity.
+</text>
