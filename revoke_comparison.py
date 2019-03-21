@@ -11,7 +11,7 @@ from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify
 from brexit_fptp_comparison import output_file
-
+from grab_latest_petition_data import check_latest_petition_data
 
 try:
     from colorama import Fore, Back, Style
@@ -64,7 +64,9 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         petition_file = sys.argv[1]
     else:
-        petition_file = DEFAULT_PETITION_FILE
+        # petition_file = DEFAULT_PETITION_FILE
+        petition_file, _ = check_latest_petition_data()
+
 
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
@@ -80,26 +82,39 @@ if __name__ == '__main__':
     include_all = True
 
     if html_output:
+        title = '''Analysis of Revoke Article 50 petition vs General Election 2017
+                     and EU Referendum results'''
+
         print('''<!DOCTYPE html>\n<html>\n<head><style>''')
         output_file(sys.stdout, 'table_colours.css')
         print('.voted-leave { background: purple; color: white; }</style>')
-        print('''</head>\n<body>\n''')
-        print('''<h1>Analysis of Remove Article 50 petition vs General Election 2017
-                     and EU Referendum results</h1>''')
-        print('<p>')
-        print('<p>Based on petition data at %s (%d signatures)</p>' % (petition_timestamp,
-                                                                signature_count))
-        print('''<p>Asterisked vote leave percentages are estimates -
-         see <a href="%s">this link</a></p>''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
+        print('<title>%s</title></head>\n<body>\n' % (title))
+        print('<h1>%s</h1>\n' % (title))
+        print('<p>Based on petition data at %s (<b>%d signatures</b>)</p>' %
+              (petition_timestamp, signature_count))
 
+        print('''<p>Asterisked vote leave percentages are estimates -
+         see <a href="%s">this link</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
+
+        print('Party colours via <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.</p>')
+        print('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
+               by <a href="https://twitter.com/JohnMMIX">John Smith</a>.</p>''')
 
         sig_above_margin = 0
+        pro_leave_sig_above_margin = 0
         for conres in election_data:
             ons_code = conres.constituency.ons_code
-            if petition_data[ons_code] > conres.winning_margin
-            sig_above_margin += 1
-        print('<h2>%d constituencies currently have more petition signatures than the GE2017 winning margin</h2>' %
-              sig_above_margin)
+            if petition_data[ons_code] > conres.winning_margin:
+                sig_above_margin += 1
+                if euref_data[ons_code].leave_pc > 50.0:
+                    pro_leave_sig_above_margin += 1
+
+
+        print('''<h2>%d constituencies currently have more petition signatures
+        than their GE2017 winning margin, of which %d voted in favour of leaving in
+        the 2016 EU Referendum</h2>''' %
+              (sig_above_margin, pro_leave_sig_above_margin))
+
 
         print('<table>\n<tr>\n')
         print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
