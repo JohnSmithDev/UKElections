@@ -74,9 +74,10 @@ if __name__ == '__main__':
                                           euref_data)
 
     signature_count, petition_timestamp, petition_data = load_petition_data(petition_file)
-    more_sigs = 0
+    counter = 0
 
     html_output = True
+    include_all = True
 
     if html_output:
         print('''<!DOCTYPE html>\n<html>\n<head><style>''')
@@ -93,7 +94,9 @@ if __name__ == '__main__':
 
         print('<table>\n<tr>\n')
         print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
-                 <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>''')
+        <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
+    <th>Petition to margin ratio</th>''')
+
 
         for i, conres in enumerate(election_data, 1):
             margin = conres.winning_margin
@@ -107,10 +110,10 @@ if __name__ == '__main__':
             #margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
             #              (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
 
-            if sigs > margin:
+            if sigs > margin or include_all:
                 cells = []
-                more_sigs += 1
-                cells.append(('numeric', '%s' % (more_sigs)))
+                counter += 1
+                cells.append(('numeric', '%s' % (counter)))
                 cells.append(('', conres.constituency.name))
 
                 kls = 'voted-leave numeric' if euref_data[ons_code].leave_pc >= 50.0 else 'numeric'
@@ -120,6 +123,22 @@ if __name__ == '__main__':
 
 
                 cells.append(('numeric', '%s' % sigs))
+                ratio = (100 * sigs / margin)
+                if ratio >= 100:
+                    ratio_class = 'threshold-100'
+                elif ratio >= 90:
+                    ratio_class = 'threshold-90'
+                elif ratio >= 80:
+                    ratio_class = 'threshold-80'
+                elif ratio >= 70:
+                    ratio_class = 'threshold-70'
+                elif ratio >= 50:
+                    ratio_class = 'threshold-60'
+                elif ratio >= 50:
+                    ratio_class = 'threshold-50'
+                else:
+                    ratio_class = ''
+                cells.append(('numeric %s' % (ratio_class), '%d%%' % ratio))
 
                 print('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))
 
@@ -144,10 +163,10 @@ if __name__ == '__main__':
             # print(slug_party)
             margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
                           (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
-            if sigs > margin:
-                more_sigs += 1
+            if sigs > margin or include_all:
+                counter += 1
                 print('%3d. %-45s : Voted leave: %s    %s    Current signatures: %5d' %
-                      (more_sigs, conres.constituency.name, leave_pc, margin_text, sigs))
+                      (counter, conres.constituency.name, leave_pc, margin_text, sigs))
 
 
 

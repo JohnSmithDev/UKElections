@@ -1,4 +1,4 @@
-/* general_colours.css */
+/* table_colours.css */
 
 * {
   font-family: Helvetica, Arial, sans-serif;
@@ -6,6 +6,13 @@
 
 .numeric { text-align: right;}
 
+/* borrowed and adapted from https://www.textfixer.com/tutorials/css-table-alternating-rows.php */
+table tr:nth-child(odd){
+  background: #f8f8f8;
+}
+table tr:nth-child(even){
+  background: #e8e8e8;
+}
 
 /* Country and region colours are 'coder colours' and should be replaced by
    something more aesthetically pleasing */
@@ -54,4 +61,12 @@
 .party-loser { background: #666; } /* "darkgrey" isn't dark enough for me */
 
 
-/* End of general_colours.css */
+.threshold-100 { background: #ff0; }
+.threshold-90{ background: #ff2; }
+.threshold-80 { background: #ff4; }
+.threshold-70 { background: #ff6; }
+.threshold-60 { background: #ff8; }
+.threshold-50 { background: #ffa; }
+
+
+/* End of table_colours.css */
