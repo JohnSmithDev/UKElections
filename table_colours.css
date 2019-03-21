@@ -1,0 +1,57 @@
+/* general_colours.css */
+
+* {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.numeric { text-align: right;}
+
+
+/* Country and region colours are 'coder colours' and should be replaced by
+   something more aesthetically pleasing */
+.country-england { background: darkgreen; }
+.country-scotland { background: darkblue; }
+.country-northern-ireland { background: orange; }
+.country-wales { background: red; }
+
+.region-london { background: red; }
+.region-south-east { background: orange; }
+.region-south-west { background: yellow; }
+.region-west-midlands { background: lightgreen; }
+.region-east-midlands { background: darkgreen; }
+.region-east { background: cyan; }
+.region-yorkshire-and-the-humber { background: lightblue; }
+.region-north-west { background: darkblue; }
+.region-north-east { background: purple; }
+
+
+
+
+/* Colours are as used by Wikipedia, unless otherwise indicated */
+.party-conservative { background: #0087dc; color: white;}
+.party-ukip { background: #70147a; }
+.party-green-party { background: #6ab023; color: white;}
+.party-labour { background: #dc241f; color: white;}
+.party-liberal-democrats { background: #faa61a; }
+
+.party-snp { background: #fef987; }
+.party-plaid-cymru { background: #008142; color: white;}
+
+.party-dup { background: #d46a4c; }
+.party-sinn-fein { background: #326760; }
+.party-sdlp { background: #99ff66; }
+.party-uup { background: #48a5ee; }
+.party-alliance { background: #f6cb2f; }
+
+.party-independent { background: black; } /* Wikipedia uses a light grey */
+.party-speaker { background: white; }
+
+
+/* More parties listed at
+   https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results
+   but I believe all the likely winners are done */
+
+.party-loser { background: #666; } /* "darkgrey" isn't dark enough for me */
+
+
+/* End of general_colours.css */

@@ -10,6 +10,8 @@ import sys
 from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify
+from brexit_fptp_comparison import output_file
+
 
 try:
     from colorama import Fore, Back, Style
@@ -40,11 +42,11 @@ PARTY_COLOURS = {
 
 
 DEFAULT_PETITION_FILE= os.path.join(os.path.dirname(__file__), 'source_data',
-                                    '241584_AsAt201903211007.json')
-# EUREF_VOTES_BY_CONSTITUENCY_URL = 'https://commonslibrary.parliament.uk/' + \
-#                                  'parliament-and-elections/elections-elections/' + \
-#                                  'brexit-votes-by-constituency/'
-EUREF_VOTES_BY_CONSTITUENCY_URL = 'http://tinyurl.com/ybnmmzz9'
+                                    '241584_AsAt201903211040.json')
+EUREF_VOTES_BY_CONSTITUENCY_URL = 'https://commonslibrary.parliament.uk/' + \
+                                  'parliament-and-elections/elections-elections/' + \
+                                  'brexit-votes-by-constituency/'
+EUREF_VOTES_BY_CONSTITUENCY_SHORT_URL = 'http://tinyurl.com/ybnmmzz9'
 def load_petition_data(petition_file):
     with open(petition_file) as petition_stream:
         petition_data = json.load(petition_stream)
@@ -73,28 +75,79 @@ if __name__ == '__main__':
 
     signature_count, petition_timestamp, petition_data = load_petition_data(petition_file)
     more_sigs = 0
-    print('Based on petition data at %s (%d signatures)' % (petition_timestamp,
-                                                            signature_count))
-    print('Asterisked vote leave percentages are estimates - see %s' %
-          EUREF_VOTES_BY_CONSTITUENCY_URL)
 
-    for i, conres in enumerate(election_data, 1):
-        margin = conres.winning_margin
-        ons_code = conres.constituency.ons_code
-        sigs = petition_data[ons_code]
-        leave_pc = '%s%2d%%%s%s'  % (
-            Back.MAGENTA if euref_data[ons_code].leave_pc >= 50.0 else '',
-            euref_data[ons_code].leave_pc,
-            ' ' if euref_data[ons_code].known_result else '*',
-            COLORAMA_RESET)
-        slug_party = slugify(conres.winning_party)
-        # print(slug_party)
-        margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
-                      (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
-        if sigs > margin:
-            more_sigs += 1
-            print('%3d. %-45s : Voted leave: %s    %s    Current signatures: %5d' %
-                  (more_sigs, conres.constituency.name, leave_pc, margin_text, sigs))
+    html_output = True
+
+    if html_output:
+        print('''<!DOCTYPE html>\n<html>\n<head><style>''')
+        output_file(sys.stdout, 'table_colours.css')
+        print('.voted-leave { background: purple; color: white; }</style>')
+        print('''</head>\n<body>\n''')
+        print('''<h1>Analysis of Remove Article 50 petition vs General Election 2017
+                     and EU Referendum results</h1>''')
+        print('<p>')
+        print('<p>Based on petition data at %s (%d signatures)</p>' % (petition_timestamp,
+                                                                signature_count))
+        print('''<p>Asterisked vote leave percentages are estimates -
+         see <a href="%s">this link</a></p>''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
+
+        print('<table>\n<tr>\n')
+        print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
+                 <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>''')
+
+        for i, conres in enumerate(election_data, 1):
+            margin = conres.winning_margin
+            ons_code = conres.constituency.ons_code
+            sigs = petition_data[ons_code]
+            leave_pc = '%2d%%%s'  % (
+                euref_data[ons_code].leave_pc,
+                ' ' if euref_data[ons_code].known_result else '*')
+            slug_party = slugify(conres.winning_party)
+            # print(slug_party)
+            #margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
+            #              (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
+
+            if sigs > margin:
+                cells = []
+                more_sigs += 1
+                cells.append(('numeric', '%s' % (more_sigs)))
+                cells.append(('', conres.constituency.name))
+
+                kls = 'voted-leave numeric' if euref_data[ons_code].leave_pc >= 50.0 else 'numeric'
+                cells.append((kls, leave_pc))
+
+                cells.append(('party-%s numeric' % slug_party, '%d' % margin))
+
+
+                cells.append(('numeric', '%s' % sigs))
+
+                print('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))
+
+        print('''</table></body>\n</html>\n''')
+
+    else:
+        print('Based on petition data at %s (%d signatures)' % (petition_timestamp,
+                                                                signature_count))
+        print('Asterisked vote leave percentages are estimates - see %s' %
+              EUREF_VOTES_BY_CONSTITUENCY_SHORT_URL)
+
+        for i, conres in enumerate(election_data, 1):
+            margin = conres.winning_margin
+            ons_code = conres.constituency.ons_code
+            sigs = petition_data[ons_code]
+            leave_pc = '%s%2d%%%s%s'  % (
+                Back.MAGENTA if euref_data[ons_code].leave_pc >= 50.0 else '',
+                euref_data[ons_code].leave_pc,
+                ' ' if euref_data[ons_code].known_result else '*',
+                COLORAMA_RESET)
+            slug_party = slugify(conres.winning_party)
+            # print(slug_party)
+            margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
+                          (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
+            if sigs > margin:
+                more_sigs += 1
+                print('%3d. %-45s : Voted leave: %s    %s    Current signatures: %5d' %
+                      (more_sigs, conres.constituency.name, leave_pc, margin_text, sigs))
 
 
 
