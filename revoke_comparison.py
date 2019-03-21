@@ -92,10 +92,20 @@ if __name__ == '__main__':
         print('''<p>Asterisked vote leave percentages are estimates -
          see <a href="%s">this link</a></p>''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
 
+
+        sig_above_margin = 0
+        for conres in election_data:
+            ons_code = conres.constituency.ons_code
+            if petition_data[ons_code] > conres.winning_margin
+            sig_above_margin += 1
+        print('<h2>%d constituencies currently have more petition signatures than the GE2017 winning margin</h2>' %
+              sig_above_margin)
+
         print('<table>\n<tr>\n')
         print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
         <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
     <th>Petition to margin ratio</th>''')
+
 
 
         for i, conres in enumerate(election_data, 1):

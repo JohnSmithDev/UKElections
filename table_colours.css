@@ -4,7 +4,9 @@
   font-family: Helvetica, Arial, sans-serif;
 }
 
-.numeric { text-align: right;}
+.numeric { text-align: right;
+           padding-right: .5em;
+         }
 
 /* borrowed and adapted from https://www.textfixer.com/tutorials/css-table-alternating-rows.php */
 table tr:nth-child(odd){
@@ -44,8 +46,8 @@ table tr:nth-child(even){
 .party-snp { background: #fef987; }
 .party-plaid-cymru { background: #008142; color: white;}
 
-.party-dup { background: #d46a4c; }
-.party-sinn-fein { background: #326760; }
+.party-dup { background: #d46a4c; color: white;}
+.party-sinn-fein { background: #326760; color: white;}
 .party-sdlp { background: #99ff66; }
 .party-uup { background: #48a5ee; }
 .party-alliance { background: #f6cb2f; }
