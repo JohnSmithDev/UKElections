@@ -70,5 +70,6 @@ table tr:nth-child(even){
 .threshold-60 { background: #ff8; }
 .threshold-50 { background: #ffa; }
 
+.voted-leave { background: purple; color: white; }
 
 /* End of table_colours.css */

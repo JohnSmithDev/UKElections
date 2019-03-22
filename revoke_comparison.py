@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from __future__ import division # Has to be usable as a Python 2 library
 
 import json
 import pdb
@@ -9,8 +10,7 @@ import sys
 
 from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
-from misc import slugify
-from brexit_fptp_comparison import output_file
+from misc import slugify,  output_file
 from grab_latest_petition_data import check_latest_petition_data
 
 try:
@@ -59,14 +59,71 @@ def load_petition_data(petition_file):
     return (main_attributes['signature_count'], main_attributes['updated_at'],
             ons2signatures)
 
+def py2print(txt):
+    # Hacky wrapper for Python 2 - obviously this only works for the most
+    # basic print() usage.  (Could be made better, but would rather port to Py3)
+    print(txt)
 
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        petition_file = sys.argv[1]
-    else:
-        # petition_file = DEFAULT_PETITION_FILE
-        petition_file, _ = check_latest_petition_data()
+def html_header(output_function, embed):
+        title = '''Analysis of Revoke Article 50 petition vs General Election 2017
+                     and EU Referendum results'''
 
+        output_function('''<!DOCTYPE html>\n<html>\n<head>''')
+        # output_file(sys.stdout, 'table_colours.css')
+        # output_function('.voted-leave { background: purple; color: white; }</style>')
+        if embed:
+            output_function('<style>\n')
+            output_file(sys.stdout, os.path.join('static', 'table_colours.css'))
+            output_function('</style>\n')
+        else:
+            output_function('''<link rel="stylesheet" type="text/css"
+                  href="/static/table_colours.css" />\n''')
+
+        output_function('<title>%s</title></head>\n' % (title))
+
+        output_function('<body>\n')
+        if embed:
+            output_function('<script>\n')
+            output_file(sys.stdout, os.path.join('static', 'sorttable.js'))
+            output_function('</script>\n')
+        else:
+            output_function('''<script src="/static/sorttable.js"></script>\n''')
+
+        output_function('<h1>%s</h1>\n' % (title))
+
+def sub_header(output_function, petition_timestamp, signature_count,
+               constituency_total, sig_above_margin, pro_leave_sig_above_margin):
+        output_function('''<p>Based on
+<a href="https://petition.parliament.uk/petitions/241584" rel="nofollow">petition</a>
+<a href="https://petition.parliament.uk/petitions/241584.json" rel="nofollow">data</a>
+        at %s - <b>%d signatures</b> of which <b>%d (%d%%)</b> are associated with a
+parliamentary constituency</p>''' % (petition_timestamp, signature_count,
+                                      constituency_total,
+                                      100 * constituency_total / signature_count))
+
+        output_function('''<p>Asterisked vote leave percentages are estimates -
+         see <a href="%s">this link</a>.  2017 General Election data
+        from the <a href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
+
+        output_function('Party colours via <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.</p>')
+        output_function('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
+               by <a href="https://twitter.com/JohnMMIX">John Smith</a>.
+Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
+</p>''')
+
+        output_function('''<h2>%d constituencies currently have more petition signatures
+        than their GE2017 winning margin, of which %d voted in favour of leaving in
+        the 2016 EU Referendum</h2>''' %
+              (sig_above_margin, pro_leave_sig_above_margin))
+
+
+        output_function('<table class="sortable">\n<tr>\n')
+        output_function('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
+        <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
+    <th>Percentage of electorate</th><th>Petition to winning margin ratio</th>''')
+
+def process(petition_file, html_output=True, include_all=True, output_function=py2print,
+            embed=True):
 
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
@@ -74,74 +131,34 @@ if __name__ == '__main__':
 
     election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
                                           euref_data)
-
-    signature_count, petition_timestamp, petition_data = load_petition_data(petition_file)
+    signature_count, petition_timestamp, constituency_data = load_petition_data(petition_file)
+    constituency_total = sum([z for z in constituency_data.values()])
     counter = 0
-
-    html_output = True
     include_all = True
 
+    sig_above_margin = 0
+    pro_leave_sig_above_margin = 0
+    for conres in election_data:
+        ons_code = conres.constituency.ons_code
+        if constituency_data[ons_code] > conres.winning_margin:
+            sig_above_margin += 1
+            if euref_data[ons_code].leave_pc > 50.0:
+                pro_leave_sig_above_margin += 1
+
     if html_output:
-        title = '''Analysis of Revoke Article 50 petition vs General Election 2017
-                     and EU Referendum results'''
-
-        print('''<!DOCTYPE html>\n<html>\n<head><style>''')
-        output_file(sys.stdout, 'table_colours.css')
-        print('.voted-leave { background: purple; color: white; }</style>')
-        print('<title>%s</title></head>\n<script>\n' % (title))
-        output_file(sys.stdout, 'sorttable.js')
-
-
-        print('</script>\n<body>\n')
-        print('<h1>%s</h1>\n' % (title))
-        print('''<p>Based on
-<a href="https://petition.parliament.uk/petitions/241584" rel="nofollow">petition</a>
-<a href="https://petition.parliament.uk/petitions/241584.json" rel="nofollow">data</a>
- at %s (<b>%d signatures</b>)</p>''' % (petition_timestamp, signature_count))
-
-
-        print('''<p>Asterisked vote leave percentages are estimates -
-         see <a href="%s">this link</a>.  2017 General Election data
-        from the <a href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
-
-        print('Party colours via <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.</p>')
-        print('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
-               by <a href="https://twitter.com/JohnMMIX">John Smith</a>.
-Table sorting via <a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
-</p>''')
-
-        sig_above_margin = 0
-        pro_leave_sig_above_margin = 0
-        for conres in election_data:
-            ons_code = conres.constituency.ons_code
-            if petition_data[ons_code] > conres.winning_margin:
-                sig_above_margin += 1
-                if euref_data[ons_code].leave_pc > 50.0:
-                    pro_leave_sig_above_margin += 1
-
-
-        print('''<h2>%d constituencies currently have more petition signatures
-        than their GE2017 winning margin, of which %d voted in favour of leaving in
-        the 2016 EU Referendum</h2>''' %
-              (sig_above_margin, pro_leave_sig_above_margin))
-
-
-        print('<table class="sortable">\n<tr>\n')
-        print('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
-        <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
-    <th>Percentage of electorate</th><th>Petition to winning margin ratio</th>''')
-
-
+        html_header(output_function, embed)
+        sub_header(output_function, petition_timestamp, signature_count,
+                   constituency_total, sig_above_margin, pro_leave_sig_above_margin)
 
         for i, conres in enumerate(election_data, 1):
             margin = conres.winning_margin
             ons_code = conres.constituency.ons_code
-            sigs = petition_data[ons_code]
+            sigs = constituency_data[ons_code]
             leave_pc = '%2d%%%s'  % (
                 euref_data[ons_code].leave_pc,
                 '&nbsp;' if euref_data[ons_code].known_result else '*')
             slug_party = slugify(conres.winning_party)
-            # print(slug_party)
+            # output_function(slug_party)
             #margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
             #              (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
 
@@ -176,35 +193,42 @@ Table sorting via <a href="https://www.kryogenix.org/code/browser/sorttable/">so
                     ratio_class = ''
                 cells.append(('numeric %s' % (ratio_class), '%d%%' % ratio))
 
-                print('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))
+                output_function('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))
 
-        print('''</table></body>\n</html>\n''')
+        output_function('''</table></body>\n</html>\n''')
 
     else:
-        print('Based on petition data at %s (%d signatures)' % (petition_timestamp,
+        output_function('Based on petition data at %s (%d signatures)' % (petition_timestamp,
                                                                 signature_count))
-        print('Asterisked vote leave percentages are estimates - see %s' %
+        output_function('Asterisked vote leave percentages are estimates - see %s' %
               EUREF_VOTES_BY_CONSTITUENCY_SHORT_URL)
 
         for i, conres in enumerate(election_data, 1):
             margin = conres.winning_margin
             ons_code = conres.constituency.ons_code
-            sigs = petition_data[ons_code]
+            sigs = constituency_data[ons_code]
             leave_pc = '%s%2d%%%s%s'  % (
                 Back.MAGENTA if euref_data[ons_code].leave_pc >= 50.0 else '',
                 euref_data[ons_code].leave_pc,
                 ' ' if euref_data[ons_code].known_result else '*',
                 COLORAMA_RESET)
             slug_party = slugify(conres.winning_party)
-            # print(slug_party)
+            # output_function(slug_party)
             margin_text = '%sGE2017 Winning margin: %5d votes%s   ' % \
                           (PARTY_COLOURS[slug_party], margin, COLORAMA_RESET)
             if sigs > margin or include_all:
                 counter += 1
-                print('%3d. %-45s : Voted leave: %s    %s    Current signatures: %5d' %
+                output_function('%3d. %-45s : Voted leave: %s    %s    Current signatures: %5d' %
                       (counter, conres.constituency.name, leave_pc, margin_text, sigs))
 
 
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        petition_file = sys.argv[1]
+    else:
+        # petition_file = DEFAULT_PETITION_FILE
+        petition_file, _ = check_latest_petition_data()
+    process(petition_file, True)
 
 
 
