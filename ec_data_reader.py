@@ -12,8 +12,15 @@ import pdb
 import re
 import sys
 
+PYTHON_MAJOR_VERSION = sys.version_info[0]
 
 from misc import slugify, intify, percentify, CSV_ENCODING
+
+if PYTHON_MAJOR_VERSION == 2:
+    # appengine/py2 doesn't like encoding argument
+    csv_reader_kwargs = {}
+else:
+    csv_reader_kwargs = {'encoding': CSV_ENCODING}
 
 ADMIN_CSV = os.path.join('source_data', '2017 UKPGE electoral data 3.csv')
 RESULTS_CSV = os.path.join('source_data', '2017 UKPGE electoral data 4.csv')
@@ -152,13 +159,16 @@ class ConstituencyResult(object):
 
 
 def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
+    """
+    Return a list of ConstituencyResult objects
+    """
     con_to_region = {}
     for reg, con_list in regions.items():
         for con in con_list:
             con_to_region[slugify(con)] = reg
 
     ons_to_con_map = {}
-    with open(admin_csv, 'r', encoding=CSV_ENCODING) as inputstream:
+    with open(admin_csv, 'r', **csv_reader_kwargs) as inputstream:
         # Ignore the first two rows, the useful headings are on the third row
         xxx = inputstream.readline()
         yyy = inputstream.readline()
@@ -180,7 +190,7 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
 
 
     raw_results = defaultdict(list)
-    with open(results_csv, 'r', encoding=CSV_ENCODING) as inputstream:
+    with open(results_csv, 'r', **csv_reader_kwargs) as inputstream:
         # Ignore the first row, the useful headings are on the second row
         _ = inputstream.readline()
         reader = csv.DictReader(inputstream)
@@ -193,9 +203,16 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
 
 
     processed_results = []
-    for raw_res in raw_results.values():
+    # Not sure whether this sort gives better results than the one below
+    for _, raw_res in raw_results.items():
         processed_results.append(ConstituencyResult(raw_res))
-    return processed_results
+
+    # Python 3 IIRC honours the insert order of a dict, so we didn't need to sort
+    # Python 2 doesn't, hence the sorted() here to ensure some consistency
+    # Note that this ordering differs from the one that was inherited from the
+    # CSV (which I think was region, then constituency name)
+    return sorted(processed_results, key=lambda z: z.constituency.name)
+    # return processed_results
 
 
 if __name__ == '__main__':
