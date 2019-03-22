@@ -11,7 +11,16 @@ import os
 import pdb
 import sys
 
+
+PYTHON_MAJOR_VERSION = sys.version_info[0]
+
 from misc import intify, percentify, CSV_ENCODING # CSV_ENCODING perhaps not needed here?
+
+if PYTHON_MAJOR_VERSION == 2:
+    # appengine/py2 doesn't like encoding argument
+    csv_reader_kwargs = {}
+else:
+    csv_reader_kwargs = {'encoding': CSV_ENCODING}
 
 EUREF_CSV = os.path.join('source_data', 'EUReferendumByConstituency.csv')
 
@@ -35,7 +44,7 @@ def load_and_process_euref_data(csvfile=EUREF_CSV):
     Return a dict mapping ONS codes to EUReferendumResult objects
     """
     results = {}
-    with open(csvfile, 'r', encoding=CSV_ENCODING) as inputstream:
+    with open(csvfile, 'r', **csv_reader_kwargs) as inputstream:
         # Ignore the first five rows, useful headings are on row 6
         # (Strictly speaking the headers are split over rows 4-6, sigh...)
         for _ in range(5):
