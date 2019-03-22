@@ -9,7 +9,7 @@ import sys
 
 from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
-from misc import slugify
+from misc import slugify, output_file
 
 
 RULING_PARTIES = ('Conservative', 'DUP', 'Speaker')
@@ -29,12 +29,6 @@ CENTRE_Y = 380
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
 
-
-def output_file(output, filename):
-    output.flush()
-    with open(filename, mode='rb') as copystream:
-        data = copystream.read()
-        output.buffer.write(data)
 
 
 def output_svg(out, data):

@@ -12,7 +12,9 @@ CSV_ENCODING = 'iso-8859-15'
 
 def slugify(str):
     # The .replace() is for 'sinn-fein'
-    return re.sub('\W+', '-', str.lower().replace(u'é', 'e'))
+    # Python2 doesn't like the accent  in the above line - hacky workaround for now
+    intermediate = re.sub('\W+', '-', str.lower())
+    return re.sub('sinn f.in', 'sinn fein', intermediate)
 
 
 def intify(s):
@@ -27,3 +29,9 @@ def percentify(s):
     """
     return Decimal(s.replace('%', ''))
 
+
+def output_file(output, filename):
+    output.flush()
+    with open(filename, mode='rb') as copystream:
+        data = copystream.read()
+        output.buffer.write(data)
