@@ -7,7 +7,10 @@ import sys
 # from datetime import time
 import time
 
-import requests
+try:
+    import requests
+except ImportError:
+    pass # Temp hack for GAE
 
 DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), 'source_data')
 MIN_FRESHNESS = 10 * 60 # i.e 10 minutes
