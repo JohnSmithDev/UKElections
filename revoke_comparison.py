@@ -68,7 +68,8 @@ def html_header(output_function, embed):
         title = '''Analysis of Revoke Article 50 petition vs General Election 2017
                      and EU Referendum results'''
 
-        output_function('''<!DOCTYPE html>\n<html>\n<head>''')
+        output_function('''<!DOCTYPE html>\n<html lang="en-GB">\n<head>''')
+        output_function('<meta charset="utf-8" />\n') # Not sure if this is right, but FF whinges otherwise
         # output_file(sys.stdout, 'table_colours.css')
         # output_function('.voted-leave { background: purple; color: white; }</style>')
         if embed:
