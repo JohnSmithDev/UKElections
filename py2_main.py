@@ -33,7 +33,7 @@ from offline import DOWNLOAD_KEY, get_latest
 
 
 PAGE_KEY = 'main_page'
-PAGE_CACHE_TIME = 60 # TODO: currently just used in memcache, should also be in HTTP response
+PAGE_CACHE_TIME = 60
 
 # app = Flask(__name__)
 
@@ -56,26 +56,31 @@ def load_from_file(filename):
 
 
 def generate_content(separator='\n'):
+    content = memcache.get(PAGE_KEY)
+    if content:
+        return content
+    logging.warning('Did not find page content %s in memcache - regenerating' % (PAGE_KEY))
+
     buf = []
     def add_to_buffer(txt):
         buf.append(txt.decode('iso-8859-1'))
 
-    try:
-        raw_string_data = memcache.get(DOWNLOAD_KEY)
-        logging.warning("loaded %d bytes from memcache", len(raw_string_data))
+    raw_string_data = memcache.get(DOWNLOAD_KEY)
+    if raw_string_data:
+        logging.warning("loaded %s (%d bytes) from memcache" % (DOWNLOAD_KEY,
+                                                                len(raw_string_data)))
         petition_data = json.loads(raw_string_data)
-    except Exception as err:
-        logging.warning('Unable to get %s from memcache: %s, getting it manually' %
+    else:
+        logging.warning('Unable to get data %s from memcache: %s, getting it manually' %
                         (DOWNLOAD_KEY, err))
         petition_data = json.loads(get_latest())
-
         # petition_file, _ = check_latest_petition_data(use_file_timestamps=False)
 
     process(petition_data=petition_data, html_output=True, include_all=True,
             output_function=add_to_buffer, embed=False)
 
     content =  separator.join(buf)
-    memcache.set(PAGE_KEY, content, PAGE_CACHE_TIME)
+    memcache.set(PAGE_KEY, content, time=PAGE_CACHE_TIME)
     return content
 
 
@@ -83,6 +88,7 @@ def generate_content(separator='\n'):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers['Cache-Control'] = 'max-age=%d, public' % (PAGE_CACHE_TIME)
         self.response.write(generate_content())
         # self.response.write("hello")
 
