@@ -29,7 +29,7 @@ import logging
 from revoke_comparison import process
 from grab_latest_petition_data import check_latest_petition_data
 
-from offline import DOWNLOAD_KEY
+from offline import DOWNLOAD_KEY, get_latest
 
 
 PAGE_KEY = 'main_page'
@@ -65,7 +65,10 @@ def generate_content(separator='\n'):
         logging.warning("loaded %d bytes from memcache", len(raw_string_data))
         petition_data = json.loads(raw_string_data)
     except Exception as err:
-        logging.warning('Unable to get %s from memcache: %s' % (DOWNLOAD_KEY, err))
+        logging.warning('Unable to get %s from memcache: %s, getting it manually' %
+                        (DOWNLOAD_KEY, err))
+        petition_data = json.loads(get_latest())
+
         # petition_file, _ = check_latest_petition_data(use_file_timestamps=False)
 
     process(petition_data=petition_data, html_output=True, include_all=True,
