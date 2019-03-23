@@ -98,8 +98,8 @@ Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code
         output_function('<table class="sortable">\n<tr>\n')
         output_function('''<th></th><th>Region</th><th>Constituency</th>
         <th>Voted leave percentage</th>
-        <th>GE 2017 winning margin (# votes)</th>
         <th>GE 2017 winning # votes</th>
+        <th>GE 2017 winning margin (# votes)</th>
 <th>Petition signatures</th>
     <th>Percentage of electorate</th>
 
