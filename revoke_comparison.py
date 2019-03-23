@@ -50,6 +50,9 @@ EUREF_VOTES_BY_CONSTITUENCY_SHORT_URL = 'http://tinyurl.com/ybnmmzz9'
 def load_petition_data(petition_file):
     with open(petition_file) as petition_stream:
         petition_data = json.load(petition_stream)
+    return petition_data
+
+def process_petition_data(petition_data):
     constituency_data = petition_data['data']['attributes']['signatures_by_constituency']
     # Turn this into a dict?
     ons2signatures = {}
@@ -123,8 +126,8 @@ Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code
         <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
     <th>Percentage of electorate</th><th>Petition to winning margin ratio</th>''')
 
-def process(petition_file, html_output=True, include_all=True, output_function=py2print,
-            embed=True):
+def process(petition_file=None, html_output=True, include_all=True, output_function=py2print,
+            embed=True, petition_data=None):
 
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
@@ -132,7 +135,11 @@ def process(petition_file, html_output=True, include_all=True, output_function=p
 
     election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
                                           euref_data)
-    signature_count, petition_timestamp, constituency_data = load_petition_data(petition_file)
+
+    if petition_file:
+        petition_data = load_petition_data(petition_file)
+    signature_count, petition_timestamp, constituency_data = process_petition_data(petition_data)
+
     constituency_total = sum([z for z in constituency_data.values()])
     counter = 0
     include_all = True
@@ -236,7 +243,7 @@ if __name__ == '__main__':
     else:
         # petition_file = DEFAULT_PETITION_FILE
         petition_file, _ = check_latest_petition_data()
-    process(petition_file, True)
+    process(petition_file, html_output=True)
 
 
 

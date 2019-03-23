@@ -5,7 +5,7 @@ import os
 import glob
 import sys
 
-from revoke_comparison import load_petition_data
+from revoke_comparison import load_petition_data, process_petition_data
 
 
 
@@ -14,7 +14,8 @@ def process_files(files):
                                   key=lambda z: z[1])
 
     for fn, file_ts in names_and_timestamps:
-        sig_count, ts, constituency_data = load_petition_data(fn)
+        data = load_petition_data(fn)
+        sig_count, ts, constituency_data = process_petition_data(data)
         constituency_total = sum([z for z in constituency_data.values()])
         print('Data at %s: Total sigs: %9d   Constituency-associated sigs: %9d   Percentage: %d%%' %
               (ts, sig_count, constituency_total, (100 * constituency_total / sig_count)))

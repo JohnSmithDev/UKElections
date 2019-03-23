@@ -1,0 +1,4 @@
+cron:
+- description: Get latest JSON from Parliament site
+  url: /Offline/getLatestJSON
+  schedule: every 10 minutes

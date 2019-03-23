@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import json
+
 # Python2
 import webapp2
 from google.appengine.api import memcache
@@ -25,6 +28,12 @@ import logging
 
 from revoke_comparison import process
 from grab_latest_petition_data import check_latest_petition_data
+
+from offline import DOWNLOAD_KEY
+
+
+PAGE_KEY = 'main_page'
+PAGE_CACHE_TIME = 60 # TODO: currently just used in memcache, should also be in HTTP response
 
 # app = Flask(__name__)
 
@@ -51,12 +60,22 @@ def generate_content(separator='\n'):
     def add_to_buffer(txt):
         buf.append(txt.decode('iso-8859-1'))
 
-    petition_file, _ = check_latest_petition_data()
-    process(petition_file, html_output=True, include_all=True,
+    try:
+        raw_string_data = memcache.get(DOWNLOAD_KEY)
+        logging.warning("loaded %d bytes from memcache", len(raw_string_data))
+        petition_data = json.loads(raw_string_data)
+    except Exception as err:
+        logging.warning('Unable to get %s from memcache: %s' % (DOWNLOAD_KEY, err))
+        # petition_file, _ = check_latest_petition_data(use_file_timestamps=False)
+
+    process(petition_data=petition_data, html_output=True, include_all=True,
             output_function=add_to_buffer, embed=False)
 
-    return separator.join(buf)
-    # return "hello: %d" % (len(buf))
+    content =  separator.join(buf)
+    memcache.set(PAGE_KEY, content, PAGE_CACHE_TIME)
+    return content
+
+
 
 class MainPage(webapp2.RequestHandler):
     def get(self):

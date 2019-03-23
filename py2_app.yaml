@@ -1,10 +1,13 @@
 runtime: python27
 #api_version: 1
 threadsafe: true
+# version: 2-0
 
 handlers:
 - url: /static
   static_dir: static
-
+- url: /Offline/.*
+  login: admin
+  script: offline.app
 - url: /.*
   script: main.app
