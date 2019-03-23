@@ -169,8 +169,15 @@ def process(petition_file, html_output=True, include_all=True, output_function=p
                 cells.append(('numeric', '%s' % (counter)))
                 cells.append(('', conres.constituency.name))
 
-                kls = 'voted-leave numeric' if euref_data[ons_code].leave_pc >= 50.0 else 'numeric'
-                cells.append((kls, leave_pc))
+                if euref_data[ons_code].leave_pc >= 55.0:
+                    kls = 'voted-leave-55'
+                elif euref_data[ons_code].leave_pc >= 50.0:
+                    kls = 'voted-leave-50'
+                elif euref_data[ons_code].leave_pc >= 45.0:
+                    kls = 'voted-leave-45'
+                else:
+                    kls = ''
+                cells.append(('numeric ' + kls, leave_pc))
 
                 cells.append(('party-%s numeric' % slug_party, '%d' % margin))
 
