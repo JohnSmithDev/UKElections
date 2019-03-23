@@ -79,7 +79,11 @@ parliamentary constituency</p>''' % (petition_timestamp, signature_count,
          see <a href="%s">this link</a>.  2017 General Election data
         from the <a href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>.''' %  EUREF_VOTES_BY_CONSTITUENCY_URL)
 
-        output_function('Party colours via <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.</p>')
+        output_function('''Party colours via
+<a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.
+        Regions also via Wikipedia
+(e.g. <a href="https://en.wikipedia.org/wiki/List_of_Parliamentary_constituencies_in_London">London</a>),
+       but presumably they were taken from somewhere/someone else.</p>''')
         output_function('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
                by <a href="https://twitter.com/JohnMMIX">John Smith</a>.
 Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
@@ -92,6 +96,12 @@ Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code
 
 
         output_function('<table class="sortable">\n<tr>\n')
-        output_function('''<th></th><th>Constituency</th><th>Voted leave percentage</th>
-        <th>GE 2017 winning margin (# votes)</th><th>Current petition signatures</th>
-    <th>Percentage of electorate</th><th>Petition to winning margin ratio</th>''')
+        output_function('''<th></th><th>Region</th><th>Constituency</th>
+        <th>Voted leave percentage</th>
+        <th>GE 2017 winning margin (# votes)</th>
+        <th>GE 2017 winning # votes</th>
+<th>Petition signatures</th>
+    <th>Percentage of electorate</th>
+
+<th>Percentage of winning GE2017 vote</th>
+<th>Petition to winning margin ratio</th>''')

@@ -117,6 +117,13 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                 cells = []
                 counter += 1
                 cells.append(('numeric', '%s' % (counter)))
+                classes = ['small centred']
+                if conres.constituency.country:
+                    classes.append('country-%s' % slugify(conres.constituency.country))
+                if conres.constituency.region:
+                    classes.append('region-%s' % slugify(conres.constituency.region))
+                cells.append((' '.join(classes),
+                              conres.constituency.country_and_region))
                 cells.append(('', conres.constituency.name))
 
                 if euref_data[ons_code].leave_pc >= 55.0:
@@ -129,12 +136,27 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                     kls = ''
                 cells.append(('numeric ' + kls, leave_pc))
 
+                cells.append(('party-%s numeric' % slug_party, '%d' %
+                              (conres.winning_result.valid_votes)))
+
                 cells.append(('party-%s numeric' % slug_party, '%d' % margin))
 
-
                 cells.append(('numeric', '%s' % sigs))
-                cells.append(('numeric', '%.1f%%' % (100 * sigs / conres.constituency.electorate)))
+
+                sig_pc = 100 * sigs / conres.constituency.electorate
+                sig_cls = 'signed-%d' % (min(50, int(sig_pc / 5) * 5))
+                cells.append(('numeric %s' % (sig_cls), '%.1f%%' % sig_pc))
+
+                sig_vs_winner_pc = 100 * sigs /conres.winning_result.valid_votes
+                ratio_range = int(sig_vs_winner_pc / 10) * 10
+                ratio_class = 'threshold-%d' % (min(100, ratio_range))
+                cells.append(('numeric %s' % (ratio_class), '%d%%' % (sig_vs_winner_pc)))
+
+
                 ratio = (100 * sigs / margin)
+                ratio_range = int(ratio / 10) * 10
+                ratio_class = 'threshold-%d' % (min(100, ratio_range))
+                OLD_CODE = """
                 if ratio >= 100:
                     ratio_class = 'threshold-100'
                 elif ratio >= 90:
@@ -149,6 +171,7 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                     ratio_class = 'threshold-50'
                 else:
                     ratio_class = ''
+                """
                 cells.append(('numeric %s' % (ratio_class), '%d%%' % ratio))
 
                 output_function('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))

@@ -4,34 +4,37 @@
   font-family: Helvetica, Arial, sans-serif;
 }
 
+
+.small { font-size: x-small; }
 .numeric { text-align: right;
            padding-right: .5em;
          }
+.centred { text-align: center; }
 
 /* borrowed and adapted from https://www.textfixer.com/tutorials/css-table-alternating-rows.php */
 table tr:nth-child(odd){
   background: #f8f8f8;
 }
 table tr:nth-child(even){
-  background: #e8e8e8;
+  background: #f0f0f0;
 }
 
 /* Country and region colours are 'coder colours' and should be replaced by
    something more aesthetically pleasing */
 .country-england { background: darkgreen; }
-.country-scotland { background: darkblue; }
+.country-scotland { background: darkblue; color: white; }
 .country-northern-ireland { background: orange; }
-.country-wales { background: red; }
+.country-wales { background: red; color: white;}
 
-.region-london { background: red; }
-.region-south-east { background: orange; }
-.region-south-west { background: yellow; }
-.region-west-midlands { background: lightgreen; }
-.region-east-midlands { background: darkgreen; }
-.region-east { background: cyan; }
-.region-yorkshire-and-the-humber { background: lightblue; }
-.region-north-west { background: darkblue; }
-.region-north-east { background: purple; }
+.region-london { background:linear-gradient(to left, red, white 20%, white 80%, red); }
+.region-south-east { background:linear-gradient(to left, orange, white 20%, white 80%, orange); }
+.region-south-west { background:linear-gradient(to left, yellow, white 20%, white 80%, yellow); }
+.region-west-midlands { background:linear-gradient(to left, lightgreen, white 20%, white 80%, lightgreen); }
+.region-east-midlands { background: linear-gradient(to left, darkgreen, white 20%, white 80%, darkgreen); }
+.region-east { background:linear-gradient(to left, cyan, white 20%, white 80%, cyan); }
+.region-yorkshire-and-the-humber { background:linear-gradient(to left, lightblue, white 20%, white 80%, lightblue); }
+.region-north-west { background:linear-gradient(to left, darkblue, white 20%, white 80%, darkblue); }
+.region-north-east { background:linear-gradient(to left, purple, white 20%, white 80%, purple); }
 
 
 
@@ -74,5 +77,18 @@ table tr:nth-child(even){
 .voted-leave-55 { background: #800080; color: white; }
 .voted-leave-50 { background: #c060c0; color: white; }
 .voted-leave-45 { background: #ffd0ff; color: black; }
+
+.signed-0 { background: #f8f8f8; }
+.signed-5 { background: #f0f0f0; }
+.signed-10 { background: #e8e8e8; }
+.signed-15 { background: #e0e0e0; }
+.signed-20 { background: #d8d8d8; }
+.signed-25 { background: #d0d0d0; }
+.signed-30 { background: #c8c8c8; }
+.signed-35 { background: #c0c0c0; }
+.signed-40 { background: #b8b8b8; }
+.signed-45 { background: #b0b0b0; }
+.signed-50 { background: #a8a8a8; }
+
 
 /* End of table_colours.css */
