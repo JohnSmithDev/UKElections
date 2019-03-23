@@ -71,8 +71,8 @@ def generate_content(separator='\n'):
                                                                 len(raw_string_data)))
         petition_data = json.loads(raw_string_data)
     else:
-        logging.warning('Unable to get data %s from memcache: %s, getting it manually' %
-                        (DOWNLOAD_KEY, err))
+        logging.warning('Unable to get data %s from memcache - getting it manually' %
+                        (DOWNLOAD_KEY))
         petition_data = json.loads(get_latest())
         # petition_file, _ = check_latest_petition_data(use_file_timestamps=False)
 
