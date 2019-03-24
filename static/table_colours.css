@@ -4,6 +4,11 @@
   font-family: Helvetica, Arial, sans-serif;
 }
 
+th {
+  font-family: "Arial Narrow", "Liberation Sans Narrow", Helvetica, Arial, sans-serif;
+
+}
+
 
 .small { font-size: x-small; }
 .numeric { text-align: right;
