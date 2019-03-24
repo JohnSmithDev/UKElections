@@ -5,8 +5,16 @@
 }
 
 th {
-  font-family: "Arial Narrow", "Liberation Sans Narrow", Helvetica, Arial, sans-serif;
+  font-family: "Arial Narrow", "Liberation Sans Narrow", Helvetica, Arial, sans-serif !important;
+}
 
+a.plain {
+  text-decoration: none;
+  color: inherit;
+}
+a.plain:hover {
+  text-decoration: underline;
+  color: rgb(0, 121, 211);;
 }
 
 
@@ -94,6 +102,22 @@ table tr:nth-child(even){
 .signed-40 { background: #b8b8b8; }
 .signed-45 { background: #b0b0b0; }
 .signed-50 { background: #a8a8a8; }
+
+
+
+/* Next bit taken from https://www.kryogenix.org/code/browser/sorttable/#lefthandheader */
+table.sortable tbody {
+    counter-reset: sortabletablescope;
+}
+table.sortable thead tr::before {
+    content: "";
+    display: table-cell;
+}
+table.sortable tbody tr::before {
+    content: counter(sortabletablescope);
+    counter-increment: sortabletablescope;
+    display: table-cell;
+}
 
 
 /* End of table_colours.css */

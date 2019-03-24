@@ -116,7 +116,7 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
             if sigs > margin or include_all:
                 cells = []
                 counter += 1
-                cells.append(('numeric', '%s' % (counter)))
+                # cells.append(('numeric', '%s' % (counter))) Now done with CSS magic
                 classes = ['small centred']
                 if conres.constituency.country:
                     classes.append('country-%s' % slugify(conres.constituency.country))
@@ -124,7 +124,9 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                     classes.append('region-%s' % slugify(conres.constituency.region))
                 cells.append((' '.join(classes),
                               conres.constituency.country_and_region))
-                cells.append(('', conres.constituency.name))
+                con_name = conres.constituency.name
+                cells.append(('', '<a class="plain" href="#%s">%s</a>' %
+                              (slugify(con_name), con_name)))
 
                 if euref_data[ons_code].leave_pc >= 55.0:
                     kls = 'voted-leave-55'
@@ -147,6 +149,11 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                 sig_cls = 'signed-%d' % (min(50, int(sig_pc / 5) * 5))
                 cells.append(('numeric %s' % (sig_cls), '%.1f%%' % sig_pc))
 
+                # NB: valid_votes is probably slightly less than turnout
+                sig_vs_turnout_pc = 100 * sigs / conres.constituency.valid_votes
+                ratio_class = 'signed-%d' % (min(50, int(sig_vs_turnout_pc / 5) * 5))
+                cells.append(('numeric %s' % (ratio_class), '%d%%' % (sig_vs_turnout_pc)))
+
                 sig_vs_winner_pc = 100 * sigs /conres.winning_result.valid_votes
                 ratio_range = int(sig_vs_winner_pc / 10) * 10
                 ratio_class = 'threshold-%d' % (min(100, ratio_range))
@@ -156,25 +163,11 @@ def process(petition_file=None, html_output=True, include_all=True, output_funct
                 ratio = (100 * sigs / margin)
                 ratio_range = int(ratio / 10) * 10
                 ratio_class = 'threshold-%d' % (min(100, ratio_range))
-                OLD_CODE = """
-                if ratio >= 100:
-                    ratio_class = 'threshold-100'
-                elif ratio >= 90:
-                    ratio_class = 'threshold-90'
-                elif ratio >= 80:
-                    ratio_class = 'threshold-80'
-                elif ratio >= 70:
-                    ratio_class = 'threshold-70'
-                elif ratio >= 50:
-                    ratio_class = 'threshold-60'
-                elif ratio >= 50:
-                    ratio_class = 'threshold-50'
-                else:
-                    ratio_class = ''
-                """
                 cells.append(('numeric %s' % (ratio_class), '%d%%' % ratio))
 
-                output_function('<tr>%s</tr>' % ''.join(['<td class="%s">%s</td>' % z for z in cells]))
+                cell_str =''.join(['<td class="%s">%s</td>' % z for z in cells])
+                output_function('<tr id="%s">%s</tr>' % (slugify(con_name),
+                                                         cell_str))
 
         output_function('''</table></body>\n</html>\n''')
 

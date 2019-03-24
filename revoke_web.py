@@ -83,10 +83,22 @@ parliamentary constituency</p>''' % (petition_timestamp, signature_count,
 <a href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>.
         Regions also via Wikipedia
 (e.g. <a href="https://en.wikipedia.org/wiki/List_of_Parliamentary_constituencies_in_London">London</a>),
-       but presumably they were taken from somewhere/someone else.</p>''')
+       but presumably they were taken from somewhere/someone else.
+       <span id="turnout-caveat">** Turnout calculations are based on valid votes
+        i.e. ignoring spoiled ballot papers etc.</span>
+</p>''')
         output_function('''<p><a href="https://github.com/JohnSmithDev/UKElections">Code</a>
                by <a href="https://twitter.com/JohnMMIX">John Smith</a>.
-Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
+Table sorting (click on the headers) via
+<a href="https://www.kryogenix.org/code/browser/sorttable/">sorttable</a>.
+Hosted on <a href="https://cloud.google.com/appengine/">Google App Engine</a> -
+        but using the free service tier, so don't blame them if this goes down due to load :-).
+</p>
+<p>
+Constituency names are hyperlinks to that row if you want to share a specific
+entry.
+This page does not (currently) automatically refresh - use your browser's refresh button
+or press F5 to get the latest data.
 </p>''')
 
         output_function('''<h2>%d constituencies have more petition signatures
@@ -96,12 +108,13 @@ Table sorting (click on the headers) via <a href="https://www.kryogenix.org/code
 
 
         output_function('<table class="sortable">\n<tr>\n')
-        output_function('''<th></th><th>Region</th><th>Constituency</th>
+        output_function('''<th>Region</th><th>Constituency</th>
         <th>Voted leave percentage</th>
-        <th>GE 2017 winning # votes</th>
-        <th>GE 2017 winning margin (# votes)</th>
+        <th>GE2017 winning # votes</th>
+        <th>GE2017 winning margin (# votes)</th>
 <th>Petition signatures</th>
     <th>Percentage of electorate</th>
 
-<th>Percentage of winning GE2017 vote</th>
-<th>Petition to winning margin ratio</th>''')
+<th>Percentage of GE2017 turnout <a href="#turnout-caveat" class="plain">**</a></th>
+<th>Percentage of GE2017 winning party's vote</th>
+<th>Percentage of GE2017 winning margin</th>''')
