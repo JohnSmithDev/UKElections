@@ -13,8 +13,9 @@ CSV_ENCODING = 'iso-8859-15'
 def slugify(str):
     # The .replace() is for 'sinn-fein'
     # Python2 doesn't like the accent  in the above line - hacky workaround for now
-    intermediate = re.sub('\W+', '-', str.lower())
-    return re.sub('sinn f.in', 'sinn fein', intermediate)
+    lc = str.lower()
+    intermediate = re.sub('sinn f.in', 'sinn fein', lc)
+    return re.sub('\W+', '-', intermediate)
 
 
 def intify(s):
