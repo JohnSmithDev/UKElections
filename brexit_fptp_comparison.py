@@ -32,20 +32,24 @@ REGION_KEY_HEIGHT = 5
 CONSTITUENCY_Y_OFFSET = TOTAL_HEIGHT - MARGIN - COUNTRY_KEY_HEIGHT - \
                             REGION_KEY_HEIGHT - MARGIN
 
-CENTRE_X = 650
-CENTRE_Y = 380
+# OVERALL_WIDTH = 1600 # Original value, although the plot width was more like 1300
+OVERALL_WIDTH = 1800 # Roughly full HD (1920x1080) with ample space for scrollbars etc
+OVERALL_HEIGHT = 1000 # Leave some space for browser chrome on Full HD screen
+
+
+CENTRE_X = int(OVERALL_WIDTH / 2)
+CENTRE_Y = int(OVERALL_HEIGHT / 2)
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
 
 
-
 def output_svg(out, data):
-    out.write('''<?xml version="1.0" encoding="UTF-8"?>
+    out.write(f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
                 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
-     width="1600" height="1000"
+     width="{OVERALL_WIDTH}" height="{OVERALL_HEIGHT}"
      id="election">
 ''')
     out.write('<title>Constituency results in 2017 General Election and 2016 EU Referendum</title>\n')
@@ -65,12 +69,22 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'brexit_fptp.css'))
     out.write(']]>\n  </style>\n')
 
+    # out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
+    #           class="debug2" />''')
+    # out.write(f'<rect x="5" y="5" width="1590" height="990" class="debug" />')
 
     output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
 
-    LEAVE_PC_SCALE = 10
-    MARGIN_PC_SCALE = 10
+    # So leave covered a range of (80-20)*10 = 600 pixels (vertical)
+    # and GE margin covered a range of 110*10 = 1100 pixels (vertical)
+    # so increase from 10 to 15 now that we are using Full HD(ish) resolution
+    # (15 is just a bit too big)
+    LEAVE_PC_SCALE = 14
+    MARGIN_PC_SCALE = 14
     LEAVE_PC_RANGE = (20,80) # inclusive range
+    # NB: in GE2017, there are 3 Labour constituencies with a margin between
+    # 50 and 55%, so watch out in future in case this goes higher.  (No Tory
+    # constituency goes above 40%)
     if ABSOLUTE_MARGIN_PC:
         MARGIN_PC_RANGE = (0,55) # inclusive range
     else:

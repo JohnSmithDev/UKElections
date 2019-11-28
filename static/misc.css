@@ -1,3 +1,10 @@
-a { stroke: #0645ad; }
+a { fill: #0645ad; }
 
-
+rect.debug {
+  stroke: red;
+  fill: transparent;
+}
+rect.debug2 {
+  stroke: purple;
+  fill: transparent;
+}
