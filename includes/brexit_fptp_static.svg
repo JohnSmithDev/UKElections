@@ -1,0 +1,23 @@
+<text x="10" y="20" class="h1">
+  Scatter plot of constituency results in 2017 General Election and 2016 EU Referendum
+</text>
+
+<text x="10" y="700" id="constituency-details">
+  View this in a browser to enable interactivity.
+</text>
+
+<text x="900" y="10" class="credits">
+  Code: <a xlink:href="https://twitter.com/JohnMMIX">@JohnMMIX</a>
+  Source: <a xlink:href="https://github.com/JohnSmithDev">https://github.com/JohnSmithDev</a>
+</text>
+<text x="900" y="25" class="credits">Data:</text>
+<text x="900" y="35" class="credits">
+  2017 General Election Data: <a xlink:href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>
+</text>
+<text x="900" y="45" class="credits">
+  2016 Referendum Constituency Data/Estimates: <a xlink:href="https://commonslibrary.parliament.uk/parliament-and-elections/elections-elections/brexit-votes-by-constituency/">Parliament.uk</a>
+</text>
+<text x="900" y="55" class="credits">
+  Party colours: via <a xlink:href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>
+</text>
+

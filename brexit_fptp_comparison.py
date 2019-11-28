@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Output a scatter plot cross referencing GE2017 results with EU Ref results
+at the constituency and region levels.
+
+
+"""
 
 import json
 import pdb
@@ -11,6 +17,8 @@ from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify, output_file
 
+INCLUDES_DIR = os.path.join(os.path.dirname(__file__), 'includes')
+STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 RULING_PARTIES = ('Conservative', 'DUP', 'Speaker')
 ABSOLUTE_MARGIN_PC = False
@@ -40,6 +48,10 @@ def output_svg(out, data):
      width="1600" height="1000"
      id="election">
 ''')
+    out.write('<title>Constituency results in 2017 General Election and 2016 EU Referendum</title>\n')
+    out.write('<description>Scatter plot of constituency results '
+              'in 2017 General Election and 2016 EU Referendum</description>\n')
+
     out.write('''<style type="text/css">
     <![CDATA[
       .constituency {
@@ -48,13 +60,13 @@ def output_svg(out, data):
         fill: lightgrey;
       }
     ''')
-    output_file(out, 'general_colours.css')
-    output_file(out, 'misc.css')
-    output_file(out, 'brexit_fptp.css')
+    output_file(out, os.path.join(STATIC_DIR, 'general_colours.css'))
+    output_file(out, os.path.join(STATIC_DIR, 'misc.css'))
+    output_file(out, os.path.join(STATIC_DIR, 'brexit_fptp.css'))
     out.write(']]>\n  </style>\n')
 
 
-    output_file(out, 'brexit_fptp_static.svg')
+    output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
 
     LEAVE_PC_SCALE = 10
     MARGIN_PC_SCALE = 10
@@ -145,6 +157,11 @@ def output_svg(out, data):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        output_filename = sys.argv[1]
+    else:
+        output_filename = 'brexit_fptp.svg'
+
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
     euref_data = load_and_process_euref_data()
@@ -152,5 +169,5 @@ if __name__ == '__main__':
     election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
                                           euref_data)
 
-    with open('brexit_fptp.svg', 'w') as output_stream:
+    with open(output_filename, 'w') as output_stream:
         output_svg(output_stream, election_data)
