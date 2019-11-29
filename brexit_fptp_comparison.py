@@ -6,6 +6,7 @@ at the constituency and region levels.
 
 """
 
+from decimal import Decimal
 import json
 import pdb
 import os
@@ -37,7 +38,7 @@ OVERALL_WIDTH = 1800 # Roughly full HD (1920x1080) with ample space for scrollba
 OVERALL_HEIGHT = 1000 # Leave some space for browser chrome on Full HD screen
 
 
-CENTRE_X = int(OVERALL_WIDTH / 2)
+CENTRE_X = int(OVERALL_WIDTH / 2) - 50 # Give more space for legend etc on RHS
 CENTRE_Y = int(OVERALL_HEIGHT / 2)
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
@@ -137,18 +138,36 @@ def output_svg(out, data):
     out.write(f'<text x="{x_offset+70}" y="{y_start+10}" class="y-axis-label">'
                       f'GE2017 Margin</text>')
 
-    for i, conres in enumerate(election_data):
+    relevant_parties = set()
+    regions = set()
+
+    prev_region = None
+    for i, conres in enumerate(sorted(election_data,
+                                      key=lambda z: z.constituency.country_and_region)):
         con = conres.constituency
-        slugified_country = slugify(con.country)
+        # slugified_country = slugify(con.country)
         winner = slugify(conres.winning_party)
         runner_up = slugify(conres.results[1].party)
+        relevant_parties.update([conres.winning_party, conres.results[1].party])
+
+        full_region = con.country_and_region
+        regions.add(full_region)
+        slugified_region = slugify(full_region)
+        region = con.region or con.country # Ensure this is populated for W, S, NI
+        if prev_region is None or slugified_region != prev_region:
+            if prev_region is not None:
+                out.write(f'</g> <!-- end of {prev_region} -->\n')
+            out.write(f'''<g class="js-level level-{slugified_region}"
+            id="region-{slugified_region}"
+            data-country="{con.country}" data-region="{region}">\n''')
+            prev_region = slugified_region
 
         y_offset = calculate_leave_pc_offset(con.euref.leave_pc)
 
         winning_margin = conres.margin_pc
         if not ABSOLUTE_MARGIN_PC and conres.winning_party not in RULING_PARTIES:
             winning_margin = -conres.margin_pc
-        x_offset = calculate_fptp_margin_offset(winning_margin)
+        x_offset = Decimal('%.1f' % (calculate_fptp_margin_offset(winning_margin)))
 
         if con.euref.known_result:
             x_offset -= DOT_RADIUS
@@ -161,12 +180,55 @@ def output_svg(out, data):
         out.write(f'class="constituency party-{winner} second-place-{runner_up}" '
                   f'title="{con.name} - {con.country}" />\n')
 
+    out.write(f'</g> <!-- end of {prev_region} -->\n')
+
+    ### Colour key
+    x_pos = 1630
+    y_pos = 90
+    line_spacing = 14
+    out.write('<g class="legend">\n');
+    out.write(f'<text x="{x_pos}" y="{y_pos}">Legend</text>\n')
+
+    for p in sorted(relevant_parties):
+        p_slug = slugify(p)
+        y_pos += line_spacing
+        out.write(f'<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4" class="party-{p_slug}" />\n')
+        out.write(f'<text x="{x_pos+10}" y="{y_pos}">{p}</text>\n')
+
+    y_pos += 30
+    for txt in ['Fill colour indicates winner.',
+                'Border/outline colour indicates',
+                'runner up.',
+                '',
+                'Square dots indicate definite',
+                'known EURef constituency',
+                'results; circles indicate',
+                'estimated results via ',
+                'Parliament.uk.'
+                ]:
+        y_pos += line_spacing
+        out.write(f'<text x="{x_pos}" y="{y_pos}">{txt}</text>\n')
+
+    y_pos += 30
+    out.write(f'''<text x="{x_pos}" y="{y_pos}" class="js-level-button selected"
+    id="js-level-all" data-level="all">All regions</text>\n''')
+    for region in sorted(regions):
+        y_pos += line_spacing
+        slugified_region = slugify(region)
+        out.write(f'''<text x="{x_pos}" y="{y_pos}" class="js-level-button"
+        id="js-level-{slugified_region}" data-level="{slugified_region}">{region}</text>\n''')
+
+
+    out.write('</g> <!-- end of legend -->\n')
+
     out.write('<script type="text/ecmascript">\n<![CDATA[\n')
     output_file(out, 'constituency_details.js')
+    output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
     out.write('setupConstituencyDetails("constituency-details", ".constituency");\n');
     out.write('\n]]>\n</script>')
     out.write('</svg>\n')
+
 
 
 

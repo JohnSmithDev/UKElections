@@ -12,8 +12,8 @@ text.credits {
   font-size: 10px;
 }
 
-text.credits {
-  font-size: 10px;
+text.legend, .legend text {
+  font-size: 12px;
 }
 
 text#constituency-details {
@@ -23,6 +23,9 @@ text#constituency-details {
 
 .constituency {
   stroke-width: 1px;
+}
+.constituency:hover {
+  cursor: pointer;
 }
 
 /* Colours are as used by Wikipedia, unless otherwise indicated */
@@ -63,5 +66,18 @@ text#constituency-details {
   text-anchor: end;
 }
 
+.js-level {
+  transition: opacity .5s ease-in-out;
+}
+.js-level.invisible {
+  opacity: 0.0;
+}
+.js-level-button.selected {
+  fill: blue;
+}
+.js-level-button:hover {
+  cursor: pointer;
+  fill: darkgreen;
+}
 
 /* End of brexit_fptp.css */

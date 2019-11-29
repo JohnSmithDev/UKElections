@@ -19,6 +19,15 @@ function setupConstituencyDetails(conDetailId, conSelector) {
     conEls.forEach((rectEl) => {
       // console.log("hello");
       rectEl.addEventListener('mouseover', (ev) => {
+          let targetEl = ev.target;
+          // Ignore elements which are invisible (possibly controlled by
+          // parent containing <g> element
+          // TODO: verify cascade works if we have overlaid items
+          let parentEl = targetEl.parentElement;
+          if (targetEl.classList.contains("invisible") ||
+              parentEl.classList.contains("invisible")) {
+              return;
+          }
           // bar = rectEl;
           // console.log("eventListener called");
           // console.dir(rectEl);
