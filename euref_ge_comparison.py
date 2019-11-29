@@ -57,15 +57,8 @@ def output_svg(out, data):
     out.write('<description>Scatter plot of constituency results '
               'in 2017 General Election and 2016 EU Referendum</description>\n')
 
-    out.write('''<style type="text/css">
-    <![CDATA[
-      .constituency {
-        stroke: black;
-        stroke-width: 1;
-        fill: lightgrey;
-      }
-    ''')
-    output_file(out, os.path.join(STATIC_DIR, 'general_colours.css'))
+    out.write('''<style type="text/css">\n<![CDATA[\n''')
+    output_file(out, os.path.join(STATIC_DIR, 'party_and_region_colours.css'))
     output_file(out, os.path.join(STATIC_DIR, 'misc.css'))
     output_file(out, os.path.join(STATIC_DIR, 'brexit_fptp.css'))
     out.write(']]>\n  </style>\n')
@@ -222,7 +215,7 @@ def output_svg(out, data):
     out.write('</g> <!-- end of legend -->\n')
 
     out.write('<script type="text/ecmascript">\n<![CDATA[\n')
-    output_file(out, 'constituency_details.js')
+    output_file(out, os.path.join(STATIC_DIR, 'constituency_details.js'))
     output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
     out.write('setupConstituencyDetails("constituency-details", ".constituency");\n');
