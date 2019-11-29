@@ -1,5 +1,7 @@
-
+/* Interactive functionality to support filtering of points by regions/levels */
+/* Also the dark mode toggle */
 /* TODO: support multiple groups of levels */
+
 function initializeRegionLevels(buttonSelector) {
     let buttonEls = Array.from(document.querySelectorAll(buttonSelector));
 
@@ -33,7 +35,7 @@ function initializeRegionLevels(buttonSelector) {
                 let clickedEl = ev.target; /* This will be the rect or text, not the group */
                 let buttonEl = clickedEl.parentElement; /* The containing <g> */
                 const level = buttonEl.getAttribute("data-level");
-                console.log("clicked " + level);
+                // console.log("clicked " + level);
 
                 selectOrUnselectButtons(level);
                 makeLevelsVisible(level);
@@ -44,3 +46,9 @@ function initializeRegionLevels(buttonSelector) {
 
 
 initializeRegionLevels(".js-level-button");
+
+document.querySelector('#js-dark-mode-toggle').addEventListener("click",
+    function toggleDarkModehandler(ev) {
+        document.querySelector("svg").classList.toggle("dark-mode");
+    }
+);

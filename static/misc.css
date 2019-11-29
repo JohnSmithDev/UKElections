@@ -1,4 +1,5 @@
 a { fill: #0645ad; }
+.dark-mode a { fill: #5bf; }
 
 rect.debug {
   stroke: red;

@@ -229,6 +229,12 @@ def output_svg(out, data):
 
     out.write('</g> <!-- end of hide-if-no-js -->\n')
 
+    y_pos += 50
+    out.write(f'''<g id="js-dark-mode-toggle">\n
+    <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
+    width="150" height="{line_spacing * 1.5}" />
+    <text x="{x_pos+10}" y="{y_pos+line_spacing}">Toggle dark mode</text>
+    </g>\n''')
 
     out.write('</g> <!-- end of legend -->\n')
 

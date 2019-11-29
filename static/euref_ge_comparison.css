@@ -6,9 +6,22 @@
   display: none;
 }
 
+svg {
+  transition: background .5s ease-in-out;
+}
+text {
+  transition: fill .5s ease-in-out;
+}
+
+.dark-mode {
+  background: black;
+}
 
 text {
   font-family: Helvetica, Arial, sans-serif;
+}
+.dark-mode text {
+  fill: #eee;
 }
 
 text.h1 {
@@ -65,15 +78,12 @@ text#constituency-details {
 .second-place-independent { stroke: --var(--independent); }
 .second-place-speaker { stroke: white; }
 
-.grid-line-light {
-  stroke: #eee;
-}
-.grid-line {
-  stroke: #ccc;
-}
-.grid-line-strong {
-  stroke: #888;
-}
+.grid-line-light { stroke: #eee; }
+.grid-line {  stroke: #ccc; }
+.grid-line-strong {  stroke: #888;}
+.dark-mode .grid-line-light { stroke: #333; }
+.dark-mode .grid-line {  stroke: #444; }
+.dark-mode .grid-line-strong {  stroke: #888;}
 
 .x-axis-label {
   font-size: 8px;
@@ -99,14 +109,14 @@ text#constituency-details {
   stroke: #0645ad;
   fill: #0645ad;
 }
+.js-level-button.selected text {
+  fill: #eee;
+}
 .js-level-button:hover rect {
   fill: darkgreen;
 }
-.js-level-button.selected text {
-  fill: white;
-}
 .js-level-button:hover text {
-  fill: white;
+  fill: #eee;
 }
 
 .js-level-button.selected {
@@ -115,6 +125,26 @@ text#constituency-details {
 .js-level-button:hover {
   cursor: pointer;
   fill: darkgreen;
+}
+
+#js-dark-mode-toggle rect {
+  stroke: #0645ad;
+  fill: transparent;
+}
+#js-dark-mode-toggle text {
+  fill: #0645ad;
+}
+#js-dark-mode-toggle.selected rect {
+  stroke: #0645ad;
+  fill: #0645ad;
+}
+#js-dark-mode-toggle:hover rect {
+  cursor: pointer;
+  fill: darkgreen;
+}
+#js-dark-mode-toggle:hover text {
+  cursor: pointer;
+  fill: #eee;
 }
 
 /* End of euref_ge_comparison.css */
