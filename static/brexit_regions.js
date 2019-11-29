@@ -30,8 +30,9 @@ function initializeRegionLevels(buttonSelector) {
         }
         el.addEventListener("click",
             function levelClickHandler(ev) {
-                let targetEl = ev.target;
-                const level = targetEl.getAttribute("data-level");
+                let clickedEl = ev.target; /* This will be the rect or text, not the group */
+                let buttonEl = clickedEl.parentElement; /* The containing <g> */
+                const level = buttonEl.getAttribute("data-level");
                 console.log("clicked " + level);
 
                 selectOrUnselectButtons(level);

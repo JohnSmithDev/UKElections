@@ -1,4 +1,11 @@
-/* brexit_fptp.css */
+/* euref_ge_comparison.css - formerly brexit_fptp.css */
+/* This relies on colour definitions (custom properties/CSS variables) in
+   party_and_region_colours */
+
+.js-disabled .hide-if-no-js {
+  display: none;
+}
+
 
 text {
   font-family: Helvetica, Arial, sans-serif;
@@ -15,6 +22,10 @@ text.credits {
 text.legend, .legend text {
   font-size: 12px;
 }
+.legend circle {
+  stroke-width: 0; /* Stop the default black border/outline showing */
+}
+
 
 text#constituency-details {
   font-size: 10px;
@@ -37,6 +48,11 @@ text#constituency-details {
 .second-place-labour { stroke: #dc241f; }
 .second-place-liberal-democrats { stroke: #faa61a; }
 
+/* New parties for 2019 */
+.second-place-brexit-party { stroke: --var(--tig); }
+.second-place-tig { stroke: --var(--tig); }
+.second-place-cuk { stroke: --var(--tig); }
+
 .second-place-snp { stroke: #fef987; }
 .second-place-plaid-cymru { stroke: #008142; }
 
@@ -46,17 +62,17 @@ text#constituency-details {
 .second-place-uup { stroke: #48a5ee; }
 .second-place-alliance { stroke: #f6cb2f; }
 
-.second-place-independent { stroke: black; } /* Wikipedia uses a light grey */
+.second-place-independent { stroke: --var(--independent); }
 .second-place-speaker { stroke: white; }
 
 .grid-line-light {
-  stroke: #ccc;
+  stroke: #eee;
 }
 .grid-line {
-  stroke: #aaa;
+  stroke: #ccc;
 }
 .grid-line-strong {
-  stroke: #444;
+  stroke: #888;
 }
 
 .x-axis-label {
@@ -74,6 +90,25 @@ text#constituency-details {
 .js-level.invisible {
   opacity: 0.0;
 }
+
+.js-level-button rect {
+  stroke: #888;
+  fill: transparent;
+}
+.js-level-button.selected rect {
+  stroke: #0645ad;
+  fill: #0645ad;
+}
+.js-level-button:hover rect {
+  fill: darkgreen;
+}
+.js-level-button.selected text {
+  fill: white;
+}
+.js-level-button:hover text {
+  fill: white;
+}
+
 .js-level-button.selected {
   fill: blue;
 }
@@ -82,4 +117,4 @@ text#constituency-details {
   fill: darkgreen;
 }
 
-/* End of brexit_fptp.css */
+/* End of euref_ge_comparison.css */

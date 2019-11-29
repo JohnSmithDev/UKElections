@@ -17,6 +17,7 @@ import sys
 from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify, output_file
+from helpers import short_region
 
 INCLUDES_DIR = os.path.join(os.path.dirname(__file__), 'includes')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
@@ -39,7 +40,7 @@ OVERALL_HEIGHT = 1000 # Leave some space for browser chrome on Full HD screen
 
 
 CENTRE_X = int(OVERALL_WIDTH / 2) - 50 # Give more space for legend etc on RHS
-CENTRE_Y = int(OVERALL_HEIGHT / 2)
+CENTRE_Y = int(OVERALL_HEIGHT / 2) + 40 # Give more space under title for interactive info
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
 
@@ -51,7 +52,7 @@ def output_svg(out, data):
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
      width="{OVERALL_WIDTH}" height="{OVERALL_HEIGHT}"
-     id="election">
+     id="election" class="js-disabled">
 ''')
     out.write('<title>Constituency results in 2017 General Election and 2016 EU Referendum</title>\n')
     out.write('<description>Scatter plot of constituency results '
@@ -63,9 +64,8 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'euref_ge_comparison.css'))
     out.write(']]>\n  </style>\n')
 
-    # out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
+    #out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
     #           class="debug2" />''')
-    # out.write(f'<rect x="5" y="5" width="1590" height="990" class="debug" />')
 
     output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
 
@@ -177,7 +177,7 @@ def output_svg(out, data):
 
     ### Colour key
     x_pos = 1630
-    y_pos = 90
+    y_pos = 130
     line_spacing = 14
     out.write('<g class="legend">\n');
     out.write(f'<text x="{x_pos}" y="{y_pos}">Legend</text>\n')
@@ -185,7 +185,8 @@ def output_svg(out, data):
     for p in sorted(relevant_parties):
         p_slug = slugify(p)
         y_pos += line_spacing
-        out.write(f'<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4" class="party-{p_slug}" />\n')
+        out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
+        class="constituency party-{p_slug}" />\n''')
         out.write(f'<text x="{x_pos+10}" y="{y_pos}">{p}</text>\n')
 
     y_pos += 30
@@ -202,14 +203,31 @@ def output_svg(out, data):
         y_pos += line_spacing
         out.write(f'<text x="{x_pos}" y="{y_pos}">{txt}</text>\n')
 
+    def draw_level_button(out, x_offset, y_offset, line_spacing, region,
+                          slugified_region=None, is_selected=False):
+        if not slugified_region:
+            slugified_region = slugify(region)
+        shortened_region = short_region(region)
+        classes = 'js-level-button'
+        if is_selected:
+            classes += ' selected'
+        out.write(f'''<g class="{classes}" id="js-level-{slugified_region}"
+        data-level="{slugified_region}">\n''')
+        out.write(f'''  <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
+        width="150" height="{line_spacing * 1.5}" />\n''')
+        out.write(f'  <text x="{x_pos+10}" y="{y_pos+line_spacing}">{shortened_region}</text>\n')
+        out.write('</g>\n')
+
+
     y_pos += 30
-    out.write(f'''<text x="{x_pos}" y="{y_pos}" class="js-level-button selected"
-    id="js-level-all" data-level="all">All regions</text>\n''')
+    out.write('<g class="hide-if-no-js">\n')
+    draw_level_button(out, x_pos, y_pos, line_spacing, 'All regions',
+                      slugified_region='all', is_selected=True)
     for region in sorted(regions):
-        y_pos += line_spacing
-        slugified_region = slugify(region)
-        out.write(f'''<text x="{x_pos}" y="{y_pos}" class="js-level-button"
-        id="js-level-{slugified_region}" data-level="{slugified_region}">{region}</text>\n''')
+        y_pos += line_spacing * 2
+        draw_level_button(out, x_pos, y_pos, line_spacing, region)
+
+    out.write('</g> <!-- end of hide-if-no-js -->\n')
 
 
     out.write('</g> <!-- end of legend -->\n')
@@ -218,7 +236,9 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'constituency_details.js'))
     output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
+    out.write('document.querySelector("svg").classList.remove("js-disabled");\n')
     out.write('setupConstituencyDetails("constituency-details", ".constituency");\n');
+
     out.write('\n]]>\n</script>')
     out.write('</svg>\n')
 

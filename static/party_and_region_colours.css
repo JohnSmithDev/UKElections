@@ -1,5 +1,40 @@
 /* party_and_region_colours.css, formerly known as general_colours.css */
 
+/* More parties listed at
+   https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results
+   but I believe all the likely winners are done */
+/* 2019 reference: https://en.wikipedia.org/wiki/2019_United_Kingdom_general_election */
+
+/* These CSS variables/custom properties haven't been checked for completeness! */
+/* Update: inkscape - as at v0.92.2 (2017) - doesn't support custom properties,
+   and even worse, they seem to stop it from processing the other CSS.
+   I don't see that this is fixed in newer versions, or is even logged on their
+   bug tracker: https://bugs.launchpad.net/inkscape/+bugs?field.tag=css
+ */
+:root {
+  --conservative: #0087dc;
+  --ukip: #70147a;
+  --green-party: #6ab023;
+  --labour: #dc241f;
+  --liberal-democrats: #faa61a;
+  /* New for 2019 */
+  --tig: #222221; /* or is it "cuk"?  Wiki page uses both... */
+  --brexit-party: #12b6cf;
+
+  --snp: #fef987;
+  --plaid-cymru: #008142;
+
+  --dup: #d46a4c;
+  --sinn-fein: #326760;
+  --sdlp: #99ff66;
+  --uup: #48a5ee;
+  --alliance: #f6cb2f;
+
+  --independent: #dddddd; /* Previously black, but TIG/CUK is a very dark grey, so match WP's grey */
+  --speaker: white;
+}
+
+
 /* Country and region colours are 'coder colours' and should be replaced by
    something more aesthetically pleasing */
 .country-england { fill: darkgreen; }
@@ -26,6 +61,10 @@
 .constituency.party-green-party { fill: #6ab023; }
 .constituency.party-labour { fill: #dc241f; }
 .constituency.party-liberal-democrats { fill: #faa61a; }
+/* New parties for 2019 */
+.constituency.party-brexit-party { stroke: --var(--tig); }
+.constituency.party-tig { stroke: --var(--tig); }
+.constituency.party-cuk { stroke: --var(--tig); }
 
 .constituency.party-snp { fill: #fef987; }
 .constituency.party-plaid-cymru { fill: #008142; }
@@ -36,13 +75,10 @@
 .constituency.party-uup { fill: #48a5ee; }
 .constituency.party-alliance { fill: #f6cb2f; }
 
-.constituency.party-independent { fill: black; } /* Wikipedia uses a light grey */
+.constituency.party-independent { fill: --var(--independent); }
 .constituency.party-speaker { fill: white; }
 
 
-/* More parties listed at
-   https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results
-   but I believe all the likely winners are done */
 
 .constituency.party-loser { fill: #666; } /* "darkgrey" isn't dark enough for me */
 
