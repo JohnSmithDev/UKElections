@@ -23,6 +23,8 @@ text#constituency-details {
 
 .constituency {
   stroke-width: 1px;
+  stroke: black; /* Both fill and stroke colours should get superseded */
+  fill: lightgrey; /* by party-specific values */
 }
 .constituency:hover {
   cursor: pointer;

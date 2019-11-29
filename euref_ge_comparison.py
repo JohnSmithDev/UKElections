@@ -60,7 +60,7 @@ def output_svg(out, data):
     out.write('''<style type="text/css">\n<![CDATA[\n''')
     output_file(out, os.path.join(STATIC_DIR, 'party_and_region_colours.css'))
     output_file(out, os.path.join(STATIC_DIR, 'misc.css'))
-    output_file(out, os.path.join(STATIC_DIR, 'brexit_fptp.css'))
+    output_file(out, os.path.join(STATIC_DIR, 'euref_ge_comparison.css'))
     out.write(']]>\n  </style>\n')
 
     # out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
