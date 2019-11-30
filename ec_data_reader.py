@@ -150,7 +150,12 @@ class ConstituencyResult(object):
 
         # Q: Technically turnout includes invalid votes?
         self.turnout_pc = Decimal(100 * self.constituency.valid_votes / self.constituency.electorate)
+
+        # Q: should this be divided by valid_votes, not electorate?
+        #    That seems to be what Wikipedia are using e.g. Tottenham 2017
+        #    has 70.1% majority on Wikipedia, but only ~47% using electorate
         self.margin_pc = Decimal(100 * self.winning_margin / self.constituency.electorate)
+        self.margin_pc = Decimal(100 * self.winning_margin / self.constituency.valid_votes)
 
 
     def __repr__(self):

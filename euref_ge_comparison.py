@@ -73,16 +73,21 @@ def output_svg(out, data):
     # and GE margin covered a range of 110*10 = 1100 pixels (vertical)
     # so increase from 10 to 15 now that we are using Full HD(ish) resolution
     # (15 is just a bit too big)
+    # Update: 14 is too much now that I calculate GE margin properly
     LEAVE_PC_SCALE = 14
-    MARGIN_PC_SCALE = 14
+    MARGIN_PC_SCALE = 9
     LEAVE_PC_RANGE = (20,80) # inclusive range
     # NB: in GE2017, there are 3 Labour constituencies with a margin between
     # 50 and 55%, so watch out in future in case this goes higher.  (No Tory
     # constituency goes above 40%)
+    # UPDATE: due to using electorate rather than valid vote, the range is more
+    # like 80, not 55
     if ABSOLUTE_MARGIN_PC:
-        MARGIN_PC_RANGE = (0,55) # inclusive range
+        MARGIN_PC_RANGE = (0,80) # inclusive range
     else:
-        MARGIN_PC_RANGE = (-55, 55) # inclusive range
+        # inclusive range, we only need to ~50 for Tories, but prefer to keep
+        # symmetrical
+        MARGIN_PC_RANGE = (-80, 80)
 
     def calculate_fptp_margin_offset(val):
         return CENTRE_X + (val * MARGIN_PC_SCALE)
@@ -172,11 +177,15 @@ def output_svg(out, data):
             out.write(f'<circle cx="{x_offset}" cy="{y_offset}" '
                       f'r="{DOT_RADIUS}" ')
         turnout = '%.1f' % (conres.turnout_pc)
+        winner_pc = '%.1f' % (100 * conres.results[0].valid_votes / con.valid_votes)
+        runner_up_pc = '%.1f' % (100 * conres.results[1].valid_votes / con.valid_votes)
         out.write(f'''class="constituency party-{winner} second-place-{runner_up}"
         data-winner="{conres.winning_party}"
         data-winner-votes="{conres.results[0].valid_votes}"
+        data-winner-percent="{winner_pc}"
         data-runner-up="{conres.results[1].party}"
         data-runner-up-votes="{conres.results[1].valid_votes}"
+        data-runner-up-percent="{runner_up_pc}"
         data-electorate="{con.electorate}" data-valid-votes="{con.valid_votes}"
         data-turnout="{turnout}"
         title="{con.name}" />\n''')
