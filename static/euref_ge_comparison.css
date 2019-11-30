@@ -65,6 +65,12 @@ text.legend, .legend text {
 .dark-mode .legend .selectable-party.selected {
   fill: cyan;
 }
+#winner-colour {
+  stroke-width: 0; /* override the default black */
+}
+#runner-up-colour {
+  fill: transparent; /* override the default grey */
+}
 
 
 text#constituency-details {
