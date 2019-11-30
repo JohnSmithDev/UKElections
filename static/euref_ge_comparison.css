@@ -27,6 +27,9 @@ text {
 text.h1 {
   font-size: 20px;
 }
+text.numeric {
+  text-anchor: end; /* right align */
+}
 
 text.credits {
   font-size: 10px;

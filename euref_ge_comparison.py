@@ -170,8 +170,15 @@ def output_svg(out, data):
         else:
             out.write(f'<circle cx="{x_offset}" cy="{y_offset}" '
                       f'r="{DOT_RADIUS}" ')
-        out.write(f'class="constituency party-{winner} second-place-{runner_up}" '
-                  f'title="{con.name} - {con.country}" />\n')
+        turnout = '%.1f' % (conres.turnout_pc)
+        out.write(f'''class="constituency party-{winner} second-place-{runner_up}"
+        data-winner="{conres.winning_party}"
+        data-winner-votes="{conres.results[0].valid_votes}"
+        data-runner-up="{conres.results[1].party}"
+        data-runner-up-votes="{conres.results[1].valid_votes}"
+        data-electorate="{con.electorate}" data-valid-votes="{con.valid_votes}"
+        data-turnout="{turnout}"
+        title="{con.name}" />\n''')
 
     out.write(f'</g> <!-- end of {prev_region} -->\n')
 
@@ -243,7 +250,7 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
     out.write('document.querySelector("svg").classList.remove("js-disabled");\n')
-    out.write('setupConstituencyDetails("constituency-details", ".constituency");\n');
+    out.write('setupConstituencyDetails("hover-details", ".constituency");\n');
 
     out.write('\n]]>\n</script>')
     out.write('</svg>\n')
