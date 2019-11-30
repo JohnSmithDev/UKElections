@@ -10,6 +10,7 @@
    and even worse, they seem to stop it from processing the other CSS.
    I don't see that this is fixed in newer versions, or is even logged on their
    bug tracker: https://bugs.launchpad.net/inkscape/+bugs?field.tag=css
+   ... or maybe not - I'd broken the var(--whatever) usages - need to re-test
  */
 :root {
   --conservative: #0087dc;
@@ -31,6 +32,7 @@
   --alliance: #f6cb2f;
 
   --independent: #dddddd; /* Previously black, but TIG/CUK is a very dark grey, so match WP's grey */
+  --nhap: #0071bb; /* National Health Action Party, 2nd in South West Surrey 2017 */
   --speaker: white;
 }
 
@@ -62,9 +64,9 @@
 .constituency.party-labour { fill: #dc241f; }
 .constituency.party-liberal-democrats { fill: #faa61a; }
 /* New parties for 2019 */
-.constituency.party-brexit-party { stroke: --var(--tig); }
-.constituency.party-tig { stroke: --var(--tig); }
-.constituency.party-cuk { stroke: --var(--tig); }
+.constituency.party-brexit-party { stroke: var(--tig); }
+.constituency.party-tig { stroke: var(--tig); }
+.constituency.party-cuk { stroke: var(--tig); }
 
 .constituency.party-snp { fill: #fef987; }
 .constituency.party-plaid-cymru { fill: #008142; }
@@ -75,8 +77,9 @@
 .constituency.party-uup { fill: #48a5ee; }
 .constituency.party-alliance { fill: #f6cb2f; }
 
-.constituency.party-independent { fill: --var(--independent); }
+.constituency.party-independent { fill: var(--independent); }
 .constituency.party-speaker { fill: white; }
+.constituency.party-nhap { fill: var(--nhap); }
 
 
 

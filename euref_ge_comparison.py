@@ -134,6 +134,7 @@ def output_svg(out, data):
     relevant_parties = set()
     regions = set()
 
+    out.write('<g id="datapoints">\n')
     prev_region = None
     for i, conres in enumerate(sorted(election_data,
                                       key=lambda z: z.constituency.country_and_region)):
@@ -181,6 +182,7 @@ def output_svg(out, data):
         title="{con.name}" />\n''')
 
     out.write(f'</g> <!-- end of {prev_region} -->\n')
+    out.write(f'</g> <!-- end of #datapoints -->\n')
 
     ### Colour key
     x_pos = 1630
@@ -193,8 +195,11 @@ def output_svg(out, data):
         p_slug = slugify(p)
         y_pos += line_spacing
         out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
-        class="constituency party-{p_slug}" />\n''')
-        out.write(f'<text x="{x_pos+10}" y="{y_pos}">{p}</text>\n')
+        class="constituency winner party-{p_slug}" />\n''')
+        out.write(f'''<circle cx="{x_pos+12}" cy="{y_pos-3}" r="4"
+        class="constituency second-place second-place-{p_slug}" />\n''')
+        out.write(f'''<text x="{x_pos+20}" y="{y_pos}" class="selectable-party"
+        data-party="{p_slug}">{p}</text>\n''')
 
     y_pos += 30
     for txt in ['Fill colour indicates winner.',
@@ -250,7 +255,7 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
     out.write('document.querySelector("svg").classList.remove("js-disabled");\n')
-    out.write('setupConstituencyDetails("hover-details", ".constituency");\n');
+    out.write('setupConstituencyDetails("hover-details", "#datapoints .constituency");\n');
 
     out.write('\n]]>\n</script>')
     out.write('</svg>\n')

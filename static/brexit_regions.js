@@ -44,6 +44,73 @@ function initializeRegionLevels(buttonSelector) {
     });
 }
 
+function showOrHideConstituencyByParty(classesToShow) {
+    document.querySelectorAll("#datapoints .constituency").forEach((el) => {
+        el.classList.add("invisible");
+    });
+    classesToShow.forEach((cls) => {
+        document.querySelectorAll("#datapoints .constituency." + cls).forEach((el) => {
+            el.classList.remove("invisible");
+        });
+    });
+}
+function showAllConstituencies() {
+    /* Note that level/region hiding may still be in effect */
+    document.querySelectorAll("#datapoints .constituency").forEach((el) => {
+        el.classList.remove("invisible");
+    });
+}
+function unselectAllPartyFilters() {
+    document.querySelectorAll(".legend .constituency").forEach((el) => {
+        el.classList.remove("selected");
+    });
+    document.querySelectorAll(".legend .selectable-party").forEach((el) => {
+        el.classList.remove("selected");
+    });
+}
+
+document.querySelectorAll(".legend .constituency").forEach((el) => {
+    el.addEventListener("click",
+        function togglePartyWinnerOrRunnerUpHidingListener(ev) {
+            let targetEl = ev.target;
+            showAllConstituencies(); // Undo any existing filtering
+            if (targetEl.classList.contains("selected")) {
+                targetEl.classList.remove("selected");
+            } else {
+                unselectAllPartyFilters();
+                let cssClasses = Array.from(targetEl.classList);
+                let relevantClass = cssClasses.find((cls) => {
+                    if (cls.startsWith("party-") || cls.startsWith("second-place-")) {
+                        return cls;
+                    } else {
+                        return undefined;
+                    }
+                });
+                showOrHideConstituencyByParty([relevantClass]);
+                targetEl.classList.add("selected");
+            }
+        }
+    );
+});
+document.querySelectorAll(".legend .selectable-party").forEach((el) => {
+    el.addEventListener("click",
+        function togglePartyHidingListener(ev) {
+            let targetEl = ev.target;
+            showAllConstituencies(); // Undo any existing filtering
+            if (targetEl.classList.contains("selected")) {
+                targetEl.classList.remove("selected");
+            } else {
+                unselectAllPartyFilters();
+                let party = targetEl.getAttribute("data-party");
+                showOrHideConstituencyByParty(["party-" + party,
+                                               "second-place-" + party]);
+                targetEl.classList.add("selected");
+            }
+        }
+    );
+});
+
+
 
 initializeRegionLevels(".js-level-button");
 

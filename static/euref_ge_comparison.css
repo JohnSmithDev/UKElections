@@ -38,8 +38,32 @@ text.credits {
 text.legend, .legend text {
   font-size: 12px;
 }
-.legend circle {
+.legend circle.winner {
   stroke-width: 0; /* Stop the default black border/outline showing */
+}
+.legend circle.second-place {
+  fill: transparent;
+}
+
+@keyframes pulse {
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+.legend circle.selected {
+  animation-name: pulse;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+  animation-duration: 1s;
+}
+.legend .selectable-party:hover {
+  cursor: pointer;
+  fill: green;
+}
+.legend .selectable-party.selected {
+  fill: #0645ad;
+}
+.dark-mode .legend .selectable-party.selected {
+  fill: cyan;
 }
 
 
@@ -52,6 +76,7 @@ text#constituency-details {
   stroke-width: 1px;
   stroke: black; /* Both fill and stroke colours should get superseded */
   fill: lightgrey; /* by party-specific values */
+  transition: opacity .5s ease-in-out;
 }
 .constituency:hover {
   cursor: pointer;
@@ -60,14 +85,14 @@ text#constituency-details {
 /* Colours are as used by Wikipedia, unless otherwise indicated */
 .second-place-conservative { stroke: #0087dc; }
 .second-place-ukip { stroke: #70147a; }
-.second-place-green-second-place { stroke: #6ab023; }
+.second-place-green-party { stroke: #6ab023; }
 .second-place-labour { stroke: #dc241f; }
 .second-place-liberal-democrats { stroke: #faa61a; }
 
 /* New parties for 2019 */
-.second-place-brexit-party { stroke: --var(--tig); }
-.second-place-tig { stroke: --var(--tig); }
-.second-place-cuk { stroke: --var(--tig); }
+.second-place-brexit-party { stroke: var(--tig); }
+.second-place-tig { stroke: var(--tig); }
+.second-place-cuk { stroke: var(--tig); }
 
 .second-place-snp { stroke: #fef987; }
 .second-place-plaid-cymru { stroke: #008142; }
@@ -78,8 +103,9 @@ text#constituency-details {
 .second-place-uup { stroke: #48a5ee; }
 .second-place-alliance { stroke: #f6cb2f; }
 
-.second-place-independent { stroke: --var(--independent); }
+.second-place-independent { stroke: var(--independent); }
 .second-place-speaker { stroke: white; }
+.second-place-nhap { stroke: var(--nhap); } /* See South West Surrey 2017 */
 
 .grid-line-light { stroke: #eee; }
 .grid-line {  stroke: #ccc; }
@@ -100,7 +126,7 @@ text#constituency-details {
 .js-level {
   transition: opacity .5s ease-in-out;
 }
-.js-level.invisible {
+.invisible {
   opacity: 0.0;
 }
 
