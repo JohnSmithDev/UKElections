@@ -2,3 +2,4 @@ source_data/*
 intermediate_data/*
 html_output/*
 temp/*
+output/*
