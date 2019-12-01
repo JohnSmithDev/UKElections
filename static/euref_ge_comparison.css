@@ -35,8 +35,12 @@ text.credits {
   font-size: 10px;
 }
 
-text.legend, .legend text {
+.legend text {
   font-size: 12px;
+}
+.legend text.heading {
+  font-size: 14px;
+  font-weight: bold;
 }
 .legend circle.winner {
   stroke-width: 0; /* Stop the default black border/outline showing */

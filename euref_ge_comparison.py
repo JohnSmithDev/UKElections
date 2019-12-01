@@ -19,8 +19,9 @@ from euref_data_reader import load_and_process_euref_data
 from misc import slugify, output_file
 from helpers import short_region
 
-INCLUDES_DIR = os.path.join(os.path.dirname(__file__), 'includes')
-STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+from settings import (INCLUDES_DIR, OUTPUT_DIR, STATIC_DIR)
+
+PROJECT = 'euref_ge_comparison'
 
 RULING_PARTIES = ('Conservative', 'DUP', 'Speaker')
 ABSOLUTE_MARGIN_PC = False
@@ -64,8 +65,8 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'euref_ge_comparison.css'))
     out.write(']]>\n  </style>\n')
 
-    #out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
-    #           class="debug2" />''')
+    out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
+               class="debug2" />''')
 
     output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
 
@@ -194,23 +195,12 @@ def output_svg(out, data):
     out.write(f'</g> <!-- end of #datapoints -->\n')
 
     ### Colour key
-    x_pos = 1630
+    x_pos = 1600
     y_pos = 130
     line_spacing = 14
     out.write('<g class="legend">\n');
-    out.write(f'<text x="{x_pos}" y="{y_pos}">Legend</text>\n')
+    out.write(f'<text x="{x_pos}" y="{y_pos}" class="heading">Legend</text>\n')
 
-    for p in sorted(relevant_parties):
-        p_slug = slugify(p)
-        y_pos += line_spacing
-        out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
-        class="constituency winner party-{p_slug}" />\n''')
-        out.write(f'''<circle cx="{x_pos+12}" cy="{y_pos-3}" r="4"
-        class="constituency second-place second-place-{p_slug}" />\n''')
-        out.write(f'''<text x="{x_pos+20}" y="{y_pos}" class="selectable-party"
-        data-party="{p_slug}">{p}</text>\n''')
-
-    y_pos += 30
     for txt in ['Fill colour indicates winner.',
                 'Border/outline colour indicates',
                 'runner up.',
@@ -219,38 +209,72 @@ def output_svg(out, data):
                 'known EURef constituency',
                 'results; circles indicate',
                 'estimated results via ',
-                'Parliament.uk.'
+                'Parliament.uk.',
+                '',
+                'Click on the items below to',
+                'filter on that particular',
+                'party, winner, runner-up or',
+                'region.'
                 ]:
         y_pos += line_spacing
         out.write(f'<text x="{x_pos}" y="{y_pos}">{txt}</text>\n')
 
-    def draw_level_button(out, x_offset, y_offset, line_spacing, region,
-                          slugified_region=None, is_selected=False):
-        if not slugified_region:
-            slugified_region = slugify(region)
-        shortened_region = short_region(region)
-        classes = 'js-level-button'
+    y_pos += line_spacing
+
+
+    for p in sorted(relevant_parties):
+        p_slug = slugify(p)
+        y_pos += line_spacing
+        out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
+        class="constituency winner party-{p_slug}" />\n''')
+        out.write(f'''<circle cx="{x_pos+12}" cy="{y_pos-3}" r="4"
+        class="constituency second-place second-place-{p_slug}" />\n''')
+        out.write(f'''<text x="{x_pos+30}" y="{y_pos}" class="selectable-party"
+        data-party="{p_slug}">{p}</text>\n''')
+
+
+    def output_button(out, x_offset, y_offset, line_spacing, label,
+                          element_id, classes=None, data_attributes=None,
+                          is_selected=False):
+        if not classes:
+            classes = []
+        if not data_attributes:
+            data_attributes = {}
         if is_selected:
-            classes += ' selected'
-        out.write(f'''<g class="{classes}" id="js-level-{slugified_region}"
-        data-level="{slugified_region}">\n''')
+            classes.append(' selected')
+
+        class_string = ' '.join(classes)
+        def data_prefixed(attribute_name):
+            if not attribute_name.startswith('data-'):
+                return 'data-%s' % (attribute_name)
+            else:
+                return attribute_name
+        attribute_bits = ['%s="%s"' % (data_prefixed(k), v) for k, v in data_attributes.items()]
+        attribute_string = ' '.join(attribute_bits)
+        out.write(f'''<g class="{class_string}" id="{element_id}"
+        {attribute_string}>\n''')
         out.write(f'''  <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
         width="150" height="{line_spacing * 1.5}" />\n''')
-        out.write(f'  <text x="{x_pos+10}" y="{y_pos+line_spacing}">{shortened_region}</text>\n')
+        out.write(f'  <text x="{x_pos+10}" y="{y_pos+line_spacing}">{label}</text>\n')
         out.write('</g>\n')
 
 
     y_pos += 30
     out.write('<g class="hide-if-no-js">\n')
-    draw_level_button(out, x_pos, y_pos, line_spacing, 'All regions',
-                      slugified_region='all', is_selected=True)
+    output_button(out, x_pos, y_pos, line_spacing, 'All regions',
+                      element_id='js-level-all', classes=['js-level-button'],
+                      data_attributes={'level': 'all'}, is_selected=True)
     for region in sorted(regions):
         y_pos += line_spacing * 2
-        draw_level_button(out, x_pos, y_pos, line_spacing, region)
+        slugified_region = slugify(region)
+        output_button(out, x_pos, y_pos, line_spacing, short_region(region),
+                      element_id='js-level-%s' % slugified_region,
+                      classes=['js-level-button'],
+                      data_attributes={'level': slugified_region})
 
     out.write('</g> <!-- end of hide-if-no-js -->\n')
 
-    y_pos += 50
+    y_pos = 935
     out.write(f'''<g id="js-dark-mode-toggle">\n
     <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
     width="150" height="{line_spacing * 1.5}" />
@@ -276,7 +300,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         output_filename = sys.argv[1]
     else:
-        output_filename = 'brexit_fptp.svg'
+        output_filename = os.path.join(OUTPUT_DIR, '%s.svg' % (PROJECT))
 
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
