@@ -14,7 +14,8 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
                                   "valid-votes-label", "valid-votes",
                                   "turnout-label", "turnout",
                                   "winner-label", "winner", "winner-votes", "winner-percent",
-                                  "runner-up-label", "runner-up", "runner-up-votes", "runner-up-percent"];
+                                  "runner-up-label", "runner-up", "runner-up-votes", "runner-up-percent",
+                                  "won-by-label", "won-by-votes",  "won-by-percent"];
         idsAndAttributes.forEach((x) => {
             conDetailsContainer.querySelector("#" + x).innerHTML = conDetails[x];
         });
@@ -104,7 +105,12 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
               "runner-up-colour": getMatchingPrefixClass(targetEl, "second-place-"),
               "runner-up": targetEl.getAttribute("data-runner-up"),
               "runner-up-votes": niceInt(targetEl.getAttribute("data-runner-up-votes")) + " votes",
-              "runner-up-percent": "(" + targetEl.getAttribute("data-runner-up-percent") + "%)"
+              "runner-up-percent": "(" + targetEl.getAttribute("data-runner-up-percent") + "%)",
+
+              "won-by-label": "Won by: ",
+              "won-by-votes": niceInt(targetEl.getAttribute("data-winner-votes") -
+                  targetEl.getAttribute("data-runner-up-votes")) + " votes",
+              "won-by-percent": "(" + targetEl.getAttribute("data-won-by-percent") + "%)"
           };
           changeDetails(conAttributes);
       });

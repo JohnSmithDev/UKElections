@@ -40,7 +40,7 @@ OVERALL_WIDTH = 1800 # Roughly full HD (1920x1080) with ample space for scrollba
 OVERALL_HEIGHT = 1000 # Leave some space for browser chrome on Full HD screen
 
 
-CENTRE_X = int(OVERALL_WIDTH / 2) - 50 # Give more space for legend etc on RHS
+CENTRE_X = int(OVERALL_WIDTH / 2) - 70 # Give more space for legend etc on RHS
 CENTRE_Y = int(OVERALL_HEIGHT / 2) + 40 # Give more space under title for interactive info
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
@@ -177,18 +177,27 @@ def output_svg(out, data):
         else:
             out.write(f'<circle cx="{x_offset}" cy="{y_offset}" '
                       f'r="{DOT_RADIUS}" ')
+
+        winner_votes = conres.results[0].valid_votes
+        runner_up_votes = conres.results[1].valid_votes
+        # Do all the percentage calculations in Python using Decimal to avoid
+        # horrible rounding/floating-point issues in JS
         turnout = '%.1f' % (conres.turnout_pc)
-        winner_pc = '%.1f' % (100 * conres.results[0].valid_votes / con.valid_votes)
-        runner_up_pc = '%.1f' % (100 * conres.results[1].valid_votes / con.valid_votes)
+        winner_pc = '%.1f' % (100 * winner_votes / con.valid_votes)
+        runner_up_pc = '%.1f' % (100 * runner_up_votes / con.valid_votes)
+        won_by_pc = '%.1f' % (100 * (winner_votes - runner_up_votes)
+                              / con.valid_votes)
+
         out.write(f'''class="constituency party-{winner} second-place-{runner_up}"
         data-winner="{conres.winning_party}"
-        data-winner-votes="{conres.results[0].valid_votes}"
+        data-winner-votes="{winner_votes}"
         data-winner-percent="{winner_pc}"
         data-runner-up="{conres.results[1].party}"
-        data-runner-up-votes="{conres.results[1].valid_votes}"
+        data-runner-up-votes="{runner_up_votes}"
         data-runner-up-percent="{runner_up_pc}"
         data-electorate="{con.electorate}" data-valid-votes="{con.valid_votes}"
         data-turnout="{turnout}"
+        data-won-by-percent="{won_by_pc}"
         title="{con.name}" />\n''')
 
     out.write(f'</g> <!-- end of {prev_region} -->\n')

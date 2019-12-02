@@ -1,51 +1,57 @@
 <!-- this assumes the SVG is roughly full HD (1920x1080) in size -->
-<text x="125" y="20" class="h1">
+<text x="110" y="20" class="h1">
   Scatter plot of constituency results in 2017 General Election and 2016 EU Referendum
 </text>
 
 <g id="hover-details">
-  <text x="125" y="50" id="constituency">
+  <text x="110" y="50" id="constituency">
   View this in a web browser to show constituency details by hovering over dots.
   </text>
 
 
-  <text x="125" y="70" id="winner-label" class="hide-if-no-js" />
+  <text x="110" y="70" id="winner-label" class="hide-if-no-js" />
   <circle cx="237" cy="65" r="4" id="winner-colour" class="constituency winner invisible" />
   <text x="245" y="70" id="winner" class="hide-if-no-js" />
   <text x="495" y="70" id="winner-votes" class="hide-if-no-js numeric" />
   <text x="500" y="70" id="winner-percent" class="hide-if-no-js" />
 
-  <text x="125" y="90" id="runner-up-label" class="hide-if-no-js" />
+  <text x="110" y="90" id="runner-up-label" class="hide-if-no-js" />
   <circle cx="237" cy="85" r="4" id="runner-up-colour" class="constituency second-place invisible" />
   <text x="245" y="90" id="runner-up" class="hide-if-no-js" />
   <text x="495" y="90" id="runner-up-votes" class="hide-if-no-js numeric" />
   <text x="500" y="90" id="runner-up-percent" class="hide-if-no-js" />
 
-  <text x="600" y="50" id="electorate-label" class="hide-if-no-js" />
-  <text x="800" y="50" id="electorate" class="hide-if-no-js numeric" />
-  <text x="600" y="70" id="valid-votes-label" class="hide-if-no-js" />
-  <text x="800" y="70" id="valid-votes" class="hide-if-no-js numeric" />
-  <text x="600" y="90" id="turnout-label" class="hide-if-no-js" />
-  <text x="800" y="90" id="turnout" class="hide-if-no-js numeric" />
+  <text x="600" y="50" id="country-region" class="hide-if-no-js" />
 
-  <text x="900" y="50" id="country-region" class="hide-if-no-js" />
+  <text x="620" y="70" id="won-by-label" class="hide-if-no-js" />
+  <text x="795" y="70" id="won-by-votes" class="hide-if-no-js numeric" />
+  <text x="800" y="70" id="won-by-percent" class="hide-if-no-js" />
+
+
+  <text x="900" y="50" id="electorate-label" class="hide-if-no-js" />
+  <text x="1100" y="50" id="electorate" class="hide-if-no-js numeric" />
+  <text x="900" y="70" id="valid-votes-label" class="hide-if-no-js" />
+  <text x="1100" y="70" id="valid-votes" class="hide-if-no-js numeric" />
+  <text x="900" y="90" id="turnout-label" class="hide-if-no-js" />
+  <text x="1100" y="90" id="turnout" class="hide-if-no-js numeric" />
+
 </g>
 
-<text x="1290" y="10" class="credits">
+<text x="1420" y="10" class="credits">
   Code: <a xlink:href="https://twitter.com/JohnMMIX">@JohnMMIX</a>
   Source: <a xlink:href="https://github.com/JohnSmithDev/UKElections">https://github.com/JohnSmithDev/UKElections</a>
 </text>
-<text x="1290" y="30" class="credits">Data:</text>
-<text x="1290" y="42" class="credits">
+<text x="1420" y="30" class="credits">Data:</text>
+<text x="1420" y="42" class="credits">
   2017 General Election Data: <a xlink:href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>
 </text>
-<text x="1290" y="54" class="credits">
+<text x="1420" y="54" class="credits">
   2016 Referendum Constituency Data/Estimates: <a xlink:href="https://commonslibrary.parliament.uk/parliament-and-elections/elections-elections/brexit-votes-by-constituency/">Parliament.uk</a>
 </text>
-<text x="1290" y="66" class="credits">
+<text x="1420" y="66" class="credits">
   Party colours: via <a xlink:href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>
 </text>
-<text x="1290" y="78" class="credits">
+<text x="1420" y="78" class="credits">
   This chart is designed for display on a 1920x1080 or higher resolution screen.
 </text>
 
