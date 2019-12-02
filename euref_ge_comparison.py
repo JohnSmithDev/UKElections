@@ -194,12 +194,13 @@ def output_svg(out, data):
     out.write(f'</g> <!-- end of {prev_region} -->\n')
     out.write(f'</g> <!-- end of #datapoints -->\n')
 
-    ### Colour key
-    x_pos = 1600
+    ### Legend
+    x_pos = 1585
     y_pos = 130
     line_spacing = 14
+    DEFAULT_BUTTON_WIDTH = 175
     out.write('<g class="legend">\n');
-    out.write(f'<text x="{x_pos}" y="{y_pos}" class="heading">Legend</text>\n')
+    out.write(f'<text x="{x_pos}" y="{y_pos}" class="heading">Legend and filters</text>\n')
 
     for txt in ['Fill colour indicates winner.',
                 'Border/outline colour indicates',
@@ -211,38 +212,32 @@ def output_svg(out, data):
                 'estimated results via ',
                 'Parliament.uk.',
                 '',
-                'Click on the items below to',
-                'filter on that particular',
-                'party, winner, runner-up or',
-                'region.'
+                'Click on the items below to filter',
+                'on that particular party, winner,',
+                'party, winner, runner-up or region.',
                 ]:
         y_pos += line_spacing
         out.write(f'<text x="{x_pos}" y="{y_pos}">{txt}</text>\n')
 
-    y_pos += line_spacing
 
+    def output_button_with_arbitrary_content(
+            out, x_offset, y_offset, line_spacing,
+            svg_content,
+            element_id=None, classes=None, data_attributes=None,
+            width=DEFAULT_BUTTON_WIDTH, is_selected=False):
 
-    for p in sorted(relevant_parties):
-        p_slug = slugify(p)
-        y_pos += line_spacing
-        out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
-        class="constituency winner party-{p_slug}" />\n''')
-        out.write(f'''<circle cx="{x_pos+12}" cy="{y_pos-3}" r="4"
-        class="constituency second-place second-place-{p_slug}" />\n''')
-        out.write(f'''<text x="{x_pos+30}" y="{y_pos}" class="selectable-party"
-        data-party="{p_slug}">{p}</text>\n''')
-
-
-    def output_button(out, x_offset, y_offset, line_spacing, label,
-                          element_id, classes=None, data_attributes=None,
-                          is_selected=False):
         if not classes:
             classes = []
         if not data_attributes:
             data_attributes = {}
         if is_selected:
             classes.append(' selected')
+        classes.append('js-button')
 
+        if not element_id:
+            id_bit = ''
+        else:
+            id_bit = f'id="{element_id}"'
         class_string = ' '.join(classes)
         def data_prefixed(attribute_name):
             if not attribute_name.startswith('data-'):
@@ -251,23 +246,66 @@ def output_svg(out, data):
                 return attribute_name
         attribute_bits = ['%s="%s"' % (data_prefixed(k), v) for k, v in data_attributes.items()]
         attribute_string = ' '.join(attribute_bits)
-        out.write(f'''<g class="{class_string}" id="{element_id}"
+        out.write(f'''<g class="{class_string}" {id_bit}
         {attribute_string}>\n''')
-        out.write(f'''  <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
-        width="150" height="{line_spacing * 1.5}" />\n''')
-        out.write(f'  <text x="{x_pos+10}" y="{y_pos+line_spacing}">{label}</text>\n')
+        out.write(f'''  <rect x="{x_offset}" y="{y_offset}" rx="{line_spacing * 0.6}"
+        width="{width}" height="{line_spacing * 1.25}" />\n''')
+        out.write(svg_content)
         out.write('</g>\n')
 
+    def output_text_button(out, x_offset, y_offset, line_spacing, label,
+                      element_id=None, classes=None, data_attributes=None,
+                      width=DEFAULT_BUTTON_WIDTH, is_selected=False):
+        # -2 is a hack to allow for descenders
+        svg_bits = f'  <text x="{x_offset+10}" y="{y_offset+line_spacing-2}">{label}</text>\n'
+        return output_button_with_arbitrary_content(out, x_offset, y_offset,
+                                                    line_spacing, svg_bits,
+                                                    element_id, classes, data_attributes,
+                                                    width, is_selected)
 
-    y_pos += 30
+    # y_pos += line_spacing
+    for p in sorted(relevant_parties):
+        p_slug = slugify(p)
+        y_pos += line_spacing * 1.5
+        ORIG = """
+        out.write(f'''<circle cx="{x_pos+2}" cy="{y_pos-3}" r="4"
+        class="constituency winner party-{p_slug}" />\n''')
+        out.write(f'''<circle cx="{x_pos+12}" cy="{y_pos-3}" r="4"
+        class="constituency second-place second-place-{p_slug}" />\n''')
+        out.write(f'''<text x="{x_pos+30}" y="{y_pos}" class="selectable-party"
+        data-party="{p_slug}">{p}</text>\n''')
+        """
+        circle_svg = f'''<circle cx="{x_pos+13}" cy="{y_pos+9}" r="4"
+        class="constituency winner party-{p_slug}" />\n'''
+        output_button_with_arbitrary_content(out, x_pos, y_pos, line_spacing,
+                                             circle_svg,
+                                             # 'js-party-filter-%s' % (p_slug),
+                                             classes=['selectable-party-position'],
+                                             data_attributes={'party': p_slug},
+                                             width=25)
+        circle_svg = f'''<circle cx="{x_pos+43}" cy="{y_pos+9}" r="4"
+        class="constituency second-place second-place-{p_slug}" />\n'''
+        output_button_with_arbitrary_content(out, x_pos+30, y_pos, line_spacing,
+                                             circle_svg,
+                                             # 'js-party-filter-%s' % (p_slug),
+                                             classes=['selectable-party-position'],
+                                             data_attributes={'party': p_slug},
+                                             width=25)
+        output_text_button(out, x_pos+60, y_pos, line_spacing, p,
+                      # 'js-party-filter-%s' % (p_slug),
+                      classes=['selectable-party'], data_attributes={'party': p_slug},
+                           width=115)
+
+
+    y_pos += 40
     out.write('<g class="hide-if-no-js">\n')
-    output_button(out, x_pos, y_pos, line_spacing, 'All regions',
-                      element_id='js-level-all', classes=['js-level-button'],
-                      data_attributes={'level': 'all'}, is_selected=True)
+    output_text_button(out, x_pos, y_pos, line_spacing, 'All regions',
+                  element_id='js-level-all', classes=['js-level-button'],
+                  data_attributes={'level': 'all'}, is_selected=True)
     for region in sorted(regions):
-        y_pos += line_spacing * 2
+        y_pos += line_spacing * 1.5
         slugified_region = slugify(region)
-        output_button(out, x_pos, y_pos, line_spacing, short_region(region),
+        output_text_button(out, x_pos, y_pos, line_spacing, short_region(region),
                       element_id='js-level-%s' % slugified_region,
                       classes=['js-level-button'],
                       data_attributes={'level': slugified_region})
@@ -275,11 +313,8 @@ def output_svg(out, data):
     out.write('</g> <!-- end of hide-if-no-js -->\n')
 
     y_pos = 935
-    out.write(f'''<g id="js-dark-mode-toggle">\n
-    <rect x="{x_pos}" y="{y_pos}" rx="{line_spacing * 0.75}"
-    width="150" height="{line_spacing * 1.5}" />
-    <text x="{x_pos+10}" y="{y_pos+line_spacing}">Toggle dark mode</text>
-    </g>\n''')
+    output_text_button(out, x_pos, y_pos, line_spacing, 'Toggle dark mode',
+                  element_id='js-dark-mode-toggle')
 
     out.write('</g> <!-- end of legend -->\n')
 

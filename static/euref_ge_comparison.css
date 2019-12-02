@@ -140,28 +140,31 @@ text#constituency-details {
   opacity: 0.0;
 }
 
-.js-level-button rect {
+
+
+/* Previously these were all "js-level-button" rather than "js-button" */
+.js-button rect {
   stroke: #888;
   fill: transparent;
 }
-.js-level-button.selected rect {
+.js-button.selected rect {
   stroke: #0645ad;
   fill: #0645ad;
 }
-.js-level-button.selected text {
+.js-button.selected text {
   fill: #eee;
 }
-.js-level-button:hover rect {
+.js-button:hover rect {
   fill: darkgreen;
 }
-.js-level-button:hover text {
+.js-button:hover text {
   fill: #eee;
 }
 
-.js-level-button.selected {
+.js-button.selected {
   fill: blue;
 }
-.js-level-button:hover {
+.js-button:hover {
   cursor: pointer;
   fill: darkgreen;
 }

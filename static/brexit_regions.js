@@ -61,7 +61,7 @@ function showAllConstituencies() {
     });
 }
 function unselectAllPartyFilters() {
-    document.querySelectorAll(".legend .constituency").forEach((el) => {
+    document.querySelectorAll(".legend .selectable-party-position").forEach((el) => {
         el.classList.remove("selected");
     });
     document.querySelectorAll(".legend .selectable-party").forEach((el) => {
@@ -69,16 +69,19 @@ function unselectAllPartyFilters() {
     });
 }
 
-document.querySelectorAll(".legend .constituency").forEach((el) => {
+document.querySelectorAll(".legend .selectable-party-position").forEach((el) => {
     el.addEventListener("click",
         function togglePartyWinnerOrRunnerUpHidingListener(ev) {
-            let targetEl = ev.target;
+            /* Don't use ev.target as this will be the rect or circle */
+            // let targetEl = ev.target;
+            let targetEl = el;
+            let circleEl = el.querySelector("circle");
             showAllConstituencies(); // Undo any existing filtering
             if (targetEl.classList.contains("selected")) {
                 targetEl.classList.remove("selected");
             } else {
                 unselectAllPartyFilters();
-                let cssClasses = Array.from(targetEl.classList);
+                let cssClasses = Array.from(circleEl.classList);
                 let relevantClass = cssClasses.find((cls) => {
                     if (cls.startsWith("party-") || cls.startsWith("second-place-")) {
                         return cls;
@@ -95,7 +98,9 @@ document.querySelectorAll(".legend .constituency").forEach((el) => {
 document.querySelectorAll(".legend .selectable-party").forEach((el) => {
     el.addEventListener("click",
         function togglePartyHidingListener(ev) {
-            let targetEl = ev.target;
+            /* Don't use ev.target as this will probably be the rect or text,
+               which don't have the data-attributes etc we want */
+            let targetEl = el;
             showAllConstituencies(); // Undo any existing filtering
             if (targetEl.classList.contains("selected")) {
                 targetEl.classList.remove("selected");
