@@ -55,8 +55,6 @@
 .region-north-east { fill: purple; }
 
 
-
-
 /* Colours are as used by Wikipedia, unless otherwise indicated */
 .constituency.party-conservative { fill: #0087dc; }
 .constituency.party-ukip { fill: #70147a; }
@@ -64,9 +62,9 @@
 .constituency.party-labour { fill: #dc241f; }
 .constituency.party-liberal-democrats { fill: #faa61a; }
 /* New parties for 2019 */
-.constituency.party-brexit-party { stroke: var(--tig); }
-.constituency.party-tig { stroke: var(--tig); }
-.constituency.party-cuk { stroke: var(--tig); }
+.constituency.party-brexit-party { fill: var(--tig); }
+.constituency.party-tig { fill: var(--tig); }
+.constituency.party-cuk { fill: var(--tig); }
 
 .constituency.party-snp { fill: #fef987; }
 .constituency.party-plaid-cymru { fill: #008142; }
@@ -80,8 +78,6 @@
 .constituency.party-independent { fill: var(--independent); }
 .constituency.party-speaker { fill: white; }
 .constituency.party-nhap { fill: var(--nhap); }
-
-
 
 .constituency.party-loser { fill: #666; } /* "darkgrey" isn't dark enough for me */
 
