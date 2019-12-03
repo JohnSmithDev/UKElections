@@ -4,7 +4,7 @@
 </text>
 
 <g id="hover-details">
-  <text x="110" y="50" id="constituency">
+  <text x="110" y="50" id="constituency" class="large">
   View this in a web browser to show constituency details by hovering over dots.
   </text>
 
@@ -21,9 +21,10 @@
   <text x="495" y="90" id="runner-up-votes" class="hide-if-no-js numeric" />
   <text x="500" y="90" id="runner-up-percent" class="hide-if-no-js" />
 
-  <text x="600" y="50" id="country-region" class="hide-if-no-js" />
+  <text x="600" y="50" id="region-label" class="hide-if-no-js" />
+  <text x="850" y="50" id="country-region" class="hide-if-no-js right-aligned" />
 
-  <text x="620" y="70" id="won-by-label" class="hide-if-no-js" />
+  <text x="600" y="70" id="won-by-label" class="hide-if-no-js" />
   <text x="795" y="70" id="won-by-votes" class="hide-if-no-js numeric" />
   <text x="800" y="70" id="won-by-percent" class="hide-if-no-js" />
 
@@ -35,23 +36,29 @@
   <text x="900" y="90" id="turnout-label" class="hide-if-no-js" />
   <text x="1100" y="90" id="turnout" class="hide-if-no-js numeric" />
 
+  <text x="1180" y="50" id="euref-percent-label" class="hide-if-no-js" />
+  <text x="1325" y="50" id="euref-percent" class="hide-if-no-js numeric" />
+  <text x="1330" y="50" id="euref-percent-estimate" class="hide-if-no-js" />
+
 </g>
 
-<text x="1420" y="10" class="credits">
-  Code: <a xlink:href="https://twitter.com/JohnMMIX">@JohnMMIX</a>
-  Source: <a xlink:href="https://github.com/JohnSmithDev/UKElections">https://github.com/JohnSmithDev/UKElections</a>
+<text x="1420" y="10" class="credits">Code: <a xlink:href="https://twitter.com/JohnMMIX">@JohnMMIX</a></text>
+
+<text x="1520" y="10" class="credits">Source: <a xlink:href="https://github.com/JohnSmithDev/UKElections">https://github.com/JohnSmithDev/UKElections</a>
 </text>
-<text x="1420" y="30" class="credits">Data:</text>
-<text x="1420" y="42" class="credits">
+<text x="1520" y="20" class="credits">Website: <a xlink:href="https://elections.john-smith.me">https://elections.john-smith.me</a></text>
+
+<text x="1420" y="37" class="credits">Data:</text>
+<text x="1420" y="49" class="credits">
   2017 General Election Data: <a xlink:href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>
 </text>
-<text x="1420" y="54" class="credits">
+<text x="1420" y="61" class="credits">
   2016 Referendum Constituency Data/Estimates: <a xlink:href="https://commonslibrary.parliament.uk/parliament-and-elections/elections-elections/brexit-votes-by-constituency/">Parliament.uk</a>
 </text>
-<text x="1420" y="66" class="credits">
+<text x="1420" y="73" class="credits">
   Party colours: via <a xlink:href="https://en.wikipedia.org/wiki/2017_United_Kingdom_general_election#Full_results">Wikipedia</a>
 </text>
-<text x="1420" y="78" class="credits">
+<text x="1420" y="90" class="credits">
   This chart is designed for display on a 1920x1080 or higher resolution screen.
 </text>
 

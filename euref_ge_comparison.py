@@ -21,6 +21,8 @@ from helpers import short_region
 
 from settings import (INCLUDES_DIR, OUTPUT_DIR, STATIC_DIR)
 
+DEBUG_MODE = False
+
 PROJECT = 'euref_ge_comparison'
 
 RULING_PARTIES = ('Conservative', 'DUP', 'Speaker')
@@ -37,11 +39,11 @@ CONSTITUENCY_Y_OFFSET = TOTAL_HEIGHT - MARGIN - COUNTRY_KEY_HEIGHT - \
 
 # OVERALL_WIDTH = 1600 # Original value, although the plot width was more like 1300
 OVERALL_WIDTH = 1800 # Roughly full HD (1920x1080) with ample space for scrollbars etc
-OVERALL_HEIGHT = 1000 # Leave some space for browser chrome on Full HD screen
+OVERALL_HEIGHT = 950 # Leave some space for browser chrome on Full HD screen
 
 
 CENTRE_X = int(OVERALL_WIDTH / 2) - 70 # Give more space for legend etc on RHS
-CENTRE_Y = int(OVERALL_HEIGHT / 2) + 40 # Give more space under title for interactive info
+CENTRE_Y = int(OVERALL_HEIGHT / 2) + 30 # Give more space under title for interactive info
 DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
 
@@ -65,17 +67,18 @@ def output_svg(out, data):
     output_file(out, os.path.join(STATIC_DIR, 'euref_ge_comparison.css'))
     out.write(']]>\n  </style>\n')
 
-    out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
-               class="debug2" />''')
+    if DEBUG_MODE:
+        out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
+        class="debug2" />''')
 
     output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
 
     # So leave covered a range of (80-20)*10 = 600 pixels (vertical)
     # and GE margin covered a range of 110*10 = 1100 pixels (vertical)
     # so increase from 10 to 15 now that we are using Full HD(ish) resolution
-    # (15 is just a bit too big)
-    # Update: 14 is too much now that I calculate GE margin properly
-    LEAVE_PC_SCALE = 14
+    # (15 is just a bit too big, as is 14 on some browsers e.g. FF
+    # Update: 14 is too much for X now that I calculate GE margin properly
+    LEAVE_PC_SCALE = 13
     MARGIN_PC_SCALE = 9
     LEAVE_PC_RANGE = (20,80) # inclusive range
     # NB: in GE2017, there are 3 Labour constituencies with a margin between
@@ -134,8 +137,8 @@ def output_svg(out, data):
         out.write(f'<line x1="{x_offset}" y1="{y_start}" '
                   f'x2="{x_offset}" y2="{y_end}" class="{css_class}" />\n')
 
-    out.write(f'<text x="{x_offset+70}" y="{y_start+10}" class="y-axis-label">'
-                      f'GE2017 Margin</text>')
+    out.write(f'<text x="{CENTRE_X}" y="{y_start+20}" class="y-axis-label centre-aligned">'
+                      f'Winning margin in General Election</text>')
 
     relevant_parties = set()
     regions = set()
@@ -198,28 +201,28 @@ def output_svg(out, data):
         data-electorate="{con.electorate}" data-valid-votes="{con.valid_votes}"
         data-turnout="{turnout}"
         data-won-by-percent="{won_by_pc}"
+        data-leave-percent="{con.euref.leave_pc}"
+        data-leave-known-figure="{'Y' if con.euref.known_result else 'N'}"
         title="{con.name}" />\n''')
 
     out.write(f'</g> <!-- end of {prev_region} -->\n')
     out.write(f'</g> <!-- end of #datapoints -->\n')
 
     ### Legend
-    x_pos = 1585
-    y_pos = 130
+    x_pos = 1575
+    y_pos = 125
     line_spacing = 14
-    DEFAULT_BUTTON_WIDTH = 175
+    DEFAULT_BUTTON_WIDTH = 190
     out.write('<g class="legend">\n');
     out.write(f'<text x="{x_pos}" y="{y_pos}" class="heading">Legend and filters</text>\n')
 
-    for txt in ['Fill colour indicates winner.',
-                'Border/outline colour indicates',
-                'runner up.',
+    for txt in ['Fill colour indicates winner.  Border/',
+                'outline colour indicates runner-up.',
                 '',
-                'Square dots indicate definite',
-                'known EURef constituency',
-                'results; circles indicate',
-                'estimated results via ',
-                'Parliament.uk.',
+                'Square dots indicate definite known',
+                'EU Referendum constituency results',
+                'circles indicate estimated results',
+                'as published on Parliament.uk.',
                 '',
                 'Click on the items below to filter',
                 'on that particular party, winner,',
@@ -284,26 +287,26 @@ def output_svg(out, data):
         out.write(f'''<text x="{x_pos+30}" y="{y_pos}" class="selectable-party"
         data-party="{p_slug}">{p}</text>\n''')
         """
-        circle_svg = f'''<circle cx="{x_pos+13}" cy="{y_pos+9}" r="4"
+        circle_svg = f'''<circle cx="{x_pos+15}" cy="{y_pos+9}" r="4"
         class="constituency winner party-{p_slug}" />\n'''
         output_button_with_arbitrary_content(out, x_pos, y_pos, line_spacing,
                                              circle_svg,
                                              # 'js-party-filter-%s' % (p_slug),
                                              classes=['selectable-party-position'],
                                              data_attributes={'party': p_slug},
-                                             width=25)
-        circle_svg = f'''<circle cx="{x_pos+43}" cy="{y_pos+9}" r="4"
+                                             width=30)
+        circle_svg = f'''<circle cx="{x_pos+50}" cy="{y_pos+9}" r="4"
         class="constituency second-place second-place-{p_slug}" />\n'''
-        output_button_with_arbitrary_content(out, x_pos+30, y_pos, line_spacing,
+        output_button_with_arbitrary_content(out, x_pos+35, y_pos, line_spacing,
                                              circle_svg,
                                              # 'js-party-filter-%s' % (p_slug),
                                              classes=['selectable-party-position'],
                                              data_attributes={'party': p_slug},
-                                             width=25)
-        output_text_button(out, x_pos+60, y_pos, line_spacing, p,
+                                             width=30)
+        output_text_button(out, x_pos+70, y_pos, line_spacing, p,
                       # 'js-party-filter-%s' % (p_slug),
                       classes=['selectable-party'], data_attributes={'party': p_slug},
-                           width=115)
+                           width=120)
 
 
     y_pos += 40
@@ -321,7 +324,7 @@ def output_svg(out, data):
 
     out.write('</g> <!-- end of hide-if-no-js -->\n')
 
-    y_pos = 935
+    y_pos = 900
     output_text_button(out, x_pos, y_pos, line_spacing, 'Toggle dark mode',
                   element_id='js-dark-mode-toggle')
 

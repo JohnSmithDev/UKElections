@@ -9,13 +9,14 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
     var conDetailsContainer = document.getElementById(conDetailsContainerId);
 
     function changeDetails(conDetails) {
-        const idsAndAttributes = ["constituency",
+        const idsAndAttributes = ["constituency", "region-label",
                                   "electorate-label", "electorate",
                                   "valid-votes-label", "valid-votes",
                                   "turnout-label", "turnout",
                                   "winner-label", "winner", "winner-votes", "winner-percent",
                                   "runner-up-label", "runner-up", "runner-up-votes", "runner-up-percent",
-                                  "won-by-label", "won-by-votes",  "won-by-percent"];
+                                  "won-by-label", "won-by-votes",  "won-by-percent",
+                                  "euref-percent-label", "euref-percent", "euref-percent-estimate"];
         idsAndAttributes.forEach((x) => {
             conDetailsContainer.querySelector("#" + x).innerHTML = conDetails[x];
         });
@@ -23,8 +24,12 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
         if (conDetails.region === conDetails.country) {
             conDetailsContainer.querySelector("#country-region").innerHTML = conDetails.country;
         } else {
+            let region = conDetails.region;
+            if (region === "Yorkshire and the Humber") {
+                region = "Yorks/Humber"; /* Hack so that it fits in */
+            }
             conDetailsContainer.querySelector("#country-region").innerHTML = conDetails.country + " - " +
-                conDetails.region ;
+                region ;
         }
 
         function replacePartyClass(el, newClass) {
@@ -84,6 +89,7 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
 
           let conName = rectEl.attributes["title"].textContent;
           let conAttributes = {
+              "region-label": "Region:",
               "region": parentEl.getAttribute("data-region"),
               "country": parentEl.getAttribute("data-country"),
               "constituency": targetEl.getAttribute("title"),
@@ -110,7 +116,13 @@ function setupConstituencyDetails(conDetailsContainerId, conSelector) {
               "won-by-label": "Won by: ",
               "won-by-votes": niceInt(targetEl.getAttribute("data-winner-votes") -
                   targetEl.getAttribute("data-runner-up-votes")) + " votes",
-              "won-by-percent": "(" + targetEl.getAttribute("data-won-by-percent") + "%)"
+              "won-by-percent": "(" + targetEl.getAttribute("data-won-by-percent") + "%)",
+
+              "euref-percent-label": "Voted leave:",
+              "euref-percent": targetEl.getAttribute("data-leave-percent") + "%",
+              "euref-percent-estimate": (targetEl.getAttribute("data-leave-known-figure") === "Y" ? "": " (est.)")
+
+
           };
           changeDetails(conAttributes);
       });

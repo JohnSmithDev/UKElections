@@ -1,0 +1,16 @@
+= euref_ge_comparison =
+
+* Link to my site
+* Support multiple GEs
+* Support multiple layer dimensions
+* Swing layer(s)
+* Build/deploy script
+* Make CSS class names more consistent
+* Search by constituency name
+
+
+== Done ==
+
+* Make filter button UI consistent
+* Constituency: show winning vote difference and percentage
+* Constituency: show EURef voting
