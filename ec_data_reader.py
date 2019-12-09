@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
 Turn the Electoral Commission CSVs into Python objects that can be manipulated.
+
+This is for the 2017 CSV data, the 2015 version is a slightly different format.
+TODO: support 2015, ideally having as much common code as possible
 """
 
 from collections import defaultdict
 import csv
 from decimal import Decimal
+import json
 import logging
 import os
 import pdb
@@ -22,9 +26,13 @@ if PYTHON_MAJOR_VERSION == 2:
 else:
     csv_reader_kwargs = {'encoding': CSV_ENCODING}
 
+
+SOURCE_DIR = 'source_data'
+
+
+# TODO: deprecate these next two in favour of DATA_SETS
 ADMIN_CSV = os.path.join('source_data', '2017 UKPGE electoral data 3.csv')
 RESULTS_CSV = os.path.join('source_data', '2017 UKPGE electoral data 4.csv')
-
 
 
 # ONS Code prefixes - https://en.wikipedia.org/wiki/ONS_coding_system#Current_GSS_coding_system
@@ -49,15 +57,39 @@ def clean_constituency_name(s):
     return name
 
 
+class ConstituencyCreationError(Exception):
+    pass
+
+def get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
+                                          label='value'):
+    for cn in possible_keys:
+        try:
+            return dict_from_csv_row[cn]
+        except KeyError:
+            pass # Try the next one
+    else:
+        raise ConstituencyCreationError('Could not find %s, tried %s' %
+                                        (label, column_names))
+
+
 class Constituency(object):
+    """
+    Given a CSVReader row for an "ADMINISTRATIVE DATA" or CONSTITUENCY.CSV row,
+    return an object representing that constituency.
+
+    Note that the CSV format is not consistent between elections :-(
+    """
 
     def __init__(self, dict_from_csv_row, euref_data=None):
-        self.ons_code = dict_from_csv_row['ONS Code']
-        try:
-            self.pa_number = dict_from_csv_row['Press association number']
-        except KeyError:
-            # Another dodgy column name
-            self.pa_number = dict_from_csv_row['Press association number ']
+        self.ons_code = get_value_from_multiple_possible_keys(dict_from_csv_row,
+                                                              ['ONS Code', 'Constituency ID'],
+                                                              'ONS Code')
+        self.pa_number = int(get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            # Note space at end of second element, also lower case "Association"
+            ['Press association number', 'Press association number ', 'PANO'],
+            'PA Number'))
+
         self.name = clean_constituency_name(dict_from_csv_row['Constituency'])
 
 
@@ -69,8 +101,8 @@ class Constituency(object):
         self.valid_votes = intify(dict_from_csv_row['Total number of valid votes counted'])
 
         self._region = None
-        if euref_data:
-            self.euref = euref_data[self.ons_code]
+        # self.euref = euref_data[self.ons_code]
+        self.euref = euref_data or None
 
 
     @property
@@ -163,16 +195,35 @@ class ConstituencyResult(object):
                                           self.winning_margin)
 
 
-def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
+def load_region_data(fn=None):
     """
-    Return a list of ConstituencyResult objects
+    Return a dictionary mapping region to a list of constituency names
     """
-    con_to_region = {}
-    for reg, con_list in regions.items():
-        for con in con_list:
-            con_to_region[slugify(con)] = reg
+    if not fn:
+        fn = os.path.join('intermediate_data', 'regions.json')
+    with open(fn) as regionstream:
+        regions = json.load(regionstream)
+    return regions
 
-    ons_to_con_map = {}
+def constituency_name_to_region(region_data, slugify_constituency_name=True):
+    """
+    Reverse mapping of the output from load_region_data() i.e. constituency name->region
+    By default the constituency name key is slugified
+    """
+    con_to_region = {} # reverse map constituency name
+    for reg, con_list in region_data.items():
+        for con in con_list:
+            k = (slugify(con) if slugify_constituency_name else con)
+            con_to_region[k] = reg
+    return con_to_region
+
+
+def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
+    """
+    Return a list of Constituency objects
+    """
+    # ons_to_con_map = {}
+    ret = []
     with open(admin_csv, 'r', **csv_reader_kwargs) as inputstream:
         # Ignore the first two rows, the useful headings are on the third row
         xxx = inputstream.readline()
@@ -184,15 +235,34 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
             # print("%d %s %s" % (i, row['Constituency'], row['Electorate ']))
             con_name = row['Constituency']
             if con_name: # avoid blank rows
-                con = Constituency(row, euref_data)
-                ons_to_con_map[con.ons_code] = con
+
+                con = Constituency(row)
+                # ons_to_con_map[con.ons_code] = con
                 if con.country == 'England':
                     slug_con = slugify(con.name)
                     try:
-                        con.region = con_to_region[slug_con]
+                        con.region = con_to_region_map[slug_con]
                     except KeyError as err:
                         logging.error('No region found for %s/%s' % (con.name, slug_con))
+                ret.append(con)
+    # return ons_to_con_map
+    return ret
 
+
+def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
+    """
+    Return a list of ConstituencyResult objects
+    """
+    con_to_region = constituency_name_to_region(regions)
+
+    constituency_list = load_constituencies_from_admin_csv(admin_csv, con_to_region)
+
+    ons_to_con_map = {}
+    for con in constituency_list:
+        ons = con.ons_code
+        ons_to_con_map[ons] = con
+        if euref_data:
+            con.euref = euref_data[con.ons_code]
 
     raw_results = defaultdict(list)
     with open(results_csv, 'r', **csv_reader_kwargs) as inputstream:
@@ -221,8 +291,12 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
 
 
 if __name__ == '__main__':
-    results = load_and_process_data(ADMIN_CSV, RESULTS_CSV)
+    region_data = load_region_data()
 
+    from euref_data_reader import load_and_process_euref_data
+    euref_data = load_and_process_euref_data()
+
+    results = load_and_process_data(ADMIN_CSV, RESULTS_CSV, region_data, euref_data)
 
     pdb.set_trace()
 
