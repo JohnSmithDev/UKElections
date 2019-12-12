@@ -103,7 +103,8 @@ text#constituency-details {
 /* Colours are as used by Wikipedia, unless otherwise indicated */
 .second-place-conservative { stroke: #0087dc; }
 .second-place-ukip { stroke: #70147a; }
-.second-place-green-party { stroke: #6ab023; }
+/* The "*green-party*" classes should be deprecated now in favour of "*green*" */
+.second-place-green-party, .second-place-green { stroke: #6ab023; }
 .second-place-labour { stroke: #dc241f; }
 .second-place-liberal-democrats { stroke: #faa61a; }
 

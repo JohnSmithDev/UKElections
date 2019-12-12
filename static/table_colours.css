@@ -55,7 +55,7 @@ table tr:nth-child(even){
 /* Colours are as used by Wikipedia, unless otherwise indicated */
 .party-conservative { background: #0087dc; color: white;}
 .party-ukip { background: #70147a; }
-.party-green-party { background: #6ab023; color: white;}
+.party-green-party, .party-green { background: #6ab023; color: white;}
 .party-labour { background: #dc241f; color: white;}
 .party-liberal-democrats { background: #faa61a; }
 

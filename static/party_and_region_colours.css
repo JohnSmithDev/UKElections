@@ -16,6 +16,7 @@
   --conservative: #0087dc;
   --ukip: #70147a;
   --green-party: #6ab023;
+  --green: #6ab023;
   --labour: #dc241f;
   --liberal-democrats: #faa61a;
   /* New for 2019 */
@@ -58,7 +59,7 @@
 /* Colours are as used by Wikipedia, unless otherwise indicated */
 .constituency.party-conservative { fill: #0087dc; }
 .constituency.party-ukip { fill: #70147a; }
-.constituency.party-green-party { fill: #6ab023; }
+.constituency.party-green-party, .constituency.party-green { fill: #6ab023; }
 .constituency.party-labour { fill: #dc241f; }
 .constituency.party-liberal-democrats { fill: #faa61a; }
 /* New parties for 2019 */
