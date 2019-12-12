@@ -81,26 +81,36 @@ class Constituency(object):
     """
 
     def __init__(self, dict_from_csv_row, euref_data=None):
-        self.ons_code = get_value_from_multiple_possible_keys(dict_from_csv_row,
-                                                              ['ONS Code', 'Constituency ID'],
-                                                              'ONS Code')
+        self.ons_code = get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['ONS Code', 'Constituency ID'],
+            'ONS Code')
         self.pa_number = int(get_value_from_multiple_possible_keys(
             dict_from_csv_row,
             # Note space at end of second element, also lower case "Association"
             ['Press association number', 'Press association number ', 'PANO'],
             'PA Number'))
 
-        self.name = clean_constituency_name(dict_from_csv_row['Constituency'])
+        name = get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['Constituency', 'Constituency Name'],
+            'Constituency Name')
+        self.name = clean_constituency_name(name)
 
+        self.electorate = intify(get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['Electorate', 'Electorate '], # Extraneous space is in 2017 data
+            'Electorate'))
+        self.valid_votes = intify(get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['Total number of valid votes counted', 'Valid Votes'],
+            'Valid Votes'))
 
-        try:
-            # I live in hope that one day the extraneous space will be removed
-            self.electorate = intify(dict_from_csv_row['Electorate'])
-        except KeyError:
-            self.electorate = intify(dict_from_csv_row['Electorate '])
-        self.valid_votes = intify(dict_from_csv_row['Total number of valid votes counted'])
+        # 2015 CSV has a Region column, 2017 does not.
+        # However we have to watch out for minor inconsistencies e.g.
+        # "Yorkshire and [Th]he Humber"
+        self._region = dict_from_csv_row.get('Region', None)
 
-        self._region = None
         # self.euref = euref_data[self.ons_code]
         self.euref = euref_data or None
 
@@ -195,7 +205,7 @@ class ConstituencyResult(object):
                                           self.winning_margin)
 
 
-def load_region_data(fn=None):
+def load_region_data(fn=None, add_on_countries=False):
     """
     Return a dictionary mapping region to a list of constituency names
     """
@@ -203,6 +213,11 @@ def load_region_data(fn=None):
         fn = os.path.join('intermediate_data', 'regions.json')
     with open(fn) as regionstream:
         regions = json.load(regionstream)
+    if add_on_countries:
+        regions['Scotland'] = 'Scotland'
+        regions['Wales'] = 'Wales'
+        regions['Northern Ireland'] = 'Northern Ireland'
+
     return regions
 
 def constituency_name_to_region(region_data, slugify_constituency_name=True):
@@ -218,32 +233,58 @@ def constituency_name_to_region(region_data, slugify_constituency_name=True):
     return con_to_region
 
 
+def sniff_admin_csv_for_ignorable_lines(admin_csv):
+    """
+    Given an admin CSV, read through the first few lines to work out how
+    many are ignorable for the csv.DictReader, and return that number of lines
+    (which may well be zero)
+    """
+
+    for skippable_lines, line in enumerate(open(admin_csv, 'r', **csv_reader_kwargs)):
+        line_bits = set([z.strip().lower() for z in line.split(',')])
+        if 'constituency' in line_bits or 'constituency name' in line_bits:
+            # Q: is the file properly closed?  It doesn't seem to matter...
+            return skippable_lines
+        # print(line_bits)
+    raise IOError('Could not determine skippable lines in %s' % (admin_csv))
+
+
 def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
     """
     Return a list of Constituency objects
     """
     # ons_to_con_map = {}
+
+    regions = set(con_to_region_map.values())
+    slug_to_canonical_region_map = dict((slugify(r), r) for r in regions)
+
     ret = []
+    skippable_lines = sniff_admin_csv_for_ignorable_lines(admin_csv)
+
     with open(admin_csv, 'r', **csv_reader_kwargs) as inputstream:
         # Ignore the first two rows, the useful headings are on the third row
-        xxx = inputstream.readline()
-        yyy = inputstream.readline()
+        for _ in range(skippable_lines):
+            xxx = inputstream.readline()
         reader = csv.DictReader(inputstream)
         for i, row in enumerate(reader):
             # pdb.set_trace()
             # Note extraneous trailing space on 'Electorate ' :-(
             # print("%d %s %s" % (i, row['Constituency'], row['Electorate ']))
-            con_name = row['Constituency']
+            try:
+                con_name = row['Constituency']
+            except KeyError:
+                con_name = row['Constituency Name']
             if con_name: # avoid blank rows
-
                 con = Constituency(row)
-                # ons_to_con_map[con.ons_code] = con
-                if con.country == 'England':
-                    slug_con = slugify(con.name)
-                    try:
-                        con.region = con_to_region_map[slug_con]
-                    except KeyError as err:
-                        logging.error('No region found for %s/%s' % (con.name, slug_con))
+                if not con.region:
+                    if con.country == 'England':
+                        slug_con = slugify(con.name)
+                        try:
+                            con.region = con_to_region_map[slug_con]
+                        except KeyError as err:
+                            logging.error('No region found for %s/%s' % (con.name, slug_con))
+                else:
+                    con.region = slug_to_canonical_region_map[slugify(con.region)]
                 ret.append(con)
     # return ons_to_con_map
     return ret
@@ -291,14 +332,22 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
 
 
 if __name__ == '__main__':
-    region_data = load_region_data()
+    admin_csv = ADMIN_CSV
+    results_csv = RESULTS_CSV
+    if len(sys.argv) > 1:
+        admin_csv = sys.argv[1]
+    if len(sys.argv) > 2:
+        results_csv = sys.argv[2]
+
+    region_data = load_region_data(add_on_countries=True)
 
     from euref_data_reader import load_and_process_euref_data
     euref_data = load_and_process_euref_data()
 
-    results = load_and_process_data(ADMIN_CSV, RESULTS_CSV, region_data, euref_data)
-
-    pdb.set_trace()
+    results = load_and_process_data(admin_csv, results_csv, region_data, euref_data)
+    print(results[0])
+    print(results[0].constituency)
+    print(results[0].constituency.euref)
 
 
 
