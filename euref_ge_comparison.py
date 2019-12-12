@@ -48,6 +48,54 @@ DOT_RADIUS = 4
 DOT_DIAMETER = DOT_RADIUS * 2
 
 
+class EnhancedConstituencyResult(object):
+    """
+    ConstituencyResult object with derived properties that are helpful when
+    outputting an SVG
+    """
+
+    def __init__(self, conres):
+        self.conres = conres
+        self.con = conres.constituency
+        self.winner_slug = slugify(conres.winning_party)
+        self.runner_up_slug = slugify(conres.results[1].party)
+        self.full_region = self.con.country_and_region
+        self.region_slug = slugify(self.full_region)
+
+        # Ensures this is populated for W, S, NI
+        self.region = self.con.region or self.con.country
+
+        self.winning_margin = conres.margin_pc
+        if not ABSOLUTE_MARGIN_PC and conres.winning_party not in RULING_PARTIES:
+            self.winning_margin = -conres.margin_pc
+
+        self.winner_votes = conres.results[0].valid_votes
+        self.runner_up_votes = conres.results[1].valid_votes
+        # Do all the percentage calculations in Python using Decimal to avoid
+        # horrible rounding/floating-point issues in JS
+        self.turnout = '%.1f' % (conres.turnout_pc)
+        self.winner_pc = '%.1f' % (100 * self.winner_votes / self.con.valid_votes)
+        self.runner_up_pc = '%.1f' % (100 * self.runner_up_votes / self.con.valid_votes)
+        self.won_by_pc = '%.1f' % (100 * (self.winner_votes - self.runner_up_votes)
+                              / self.con.valid_votes)
+
+    def data_attributes_string(self):
+        """
+        Includes a title attribute as well
+        """
+        return f'''data-winner="{self.conres.winning_party}"
+        data-winner-votes="{self.winner_votes}"
+        data-winner-percent="{self.winner_pc}"
+        data-runner-up="{self.conres.results[1].party}"
+        data-runner-up-votes="{self.runner_up_votes}"
+        data-runner-up-percent="{self.runner_up_pc}"
+        data-electorate="{self.con.electorate}" data-valid-votes="{self.con.valid_votes}"
+        data-turnout="{self.turnout}"
+        data-won-by-percent="{self.won_by_pc}"
+        data-leave-percent="{self.con.euref.leave_pc}"
+        data-leave-known-figure="{'Y' if self.con.euref.known_result else 'N'}"
+        title="{self.con.name}"'''
+
 def output_svg(out, data):
     out.write(f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -147,6 +195,8 @@ def output_svg(out, data):
     prev_region = None
     for i, conres in enumerate(sorted(election_data,
                                       key=lambda z: z.constituency.country_and_region)):
+        ecr = EnhancedConstituencyResult(conres)
+
         con = conres.constituency
         # slugified_country = slugify(con.country)
         winner = slugify(conres.winning_party)
@@ -181,29 +231,34 @@ def output_svg(out, data):
             out.write(f'<circle cx="{x_offset}" cy="{y_offset}" '
                       f'r="{DOT_RADIUS}" ')
 
-        winner_votes = conres.results[0].valid_votes
-        runner_up_votes = conres.results[1].valid_votes
+        # winner_votes = conres.results[0].valid_votes
+        # runner_up_votes = conres.results[1].valid_votes
         # Do all the percentage calculations in Python using Decimal to avoid
         # horrible rounding/floating-point issues in JS
-        turnout = '%.1f' % (conres.turnout_pc)
-        winner_pc = '%.1f' % (100 * winner_votes / con.valid_votes)
-        runner_up_pc = '%.1f' % (100 * runner_up_votes / con.valid_votes)
-        won_by_pc = '%.1f' % (100 * (winner_votes - runner_up_votes)
-                              / con.valid_votes)
+        # turnout = '%.1f' % (conres.turnout_pc)
+        # winner_pc = '%.1f' % (100 * winner_votes / con.valid_votes)
+        # runner_up_pc = '%.1f' % (100 * runner_up_votes / con.valid_votes)
+        # won_by_pc = '%.1f' % (100 * (winner_votes - runner_up_votes)
+        #                      / con.valid_votes)
 
+        out.write(f'class="constituency party-{winner} second-place-{runner_up}"\n')
+        out.write(ecr.data_attributes_string() + '/>\n')
+
+        PREV = """
         out.write(f'''class="constituency party-{winner} second-place-{runner_up}"
         data-winner="{conres.winning_party}"
-        data-winner-votes="{winner_votes}"
-        data-winner-percent="{winner_pc}"
+        data-winner-votes="{ecr.winner_votes}"
+        data-winner-percent="{ecr.winner_pc}"
         data-runner-up="{conres.results[1].party}"
-        data-runner-up-votes="{runner_up_votes}"
-        data-runner-up-percent="{runner_up_pc}"
+        data-runner-up-votes="{ecr.runner_up_votes}"
+        data-runner-up-percent="{ecr.runner_up_pc}"
         data-electorate="{con.electorate}" data-valid-votes="{con.valid_votes}"
-        data-turnout="{turnout}"
-        data-won-by-percent="{won_by_pc}"
+        data-turnout="{ecr.turnout}"
+        data-won-by-percent="{ecr.won_by_pc}"
         data-leave-percent="{con.euref.leave_pc}"
         data-leave-known-figure="{'Y' if con.euref.known_result else 'N'}"
         title="{con.name}" />\n''')
+        """
 
     out.write(f'</g> <!-- end of {prev_region} -->\n')
     out.write(f'</g> <!-- end of #datapoints -->\n')
