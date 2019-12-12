@@ -19,6 +19,7 @@ import sys
 PYTHON_MAJOR_VERSION = sys.version_info[0]
 
 from misc import slugify, intify, percentify, CSV_ENCODING
+from canonical_party_names import CANONICAL_PARTY_NAMES
 
 if PYTHON_MAJOR_VERSION == 2:
     # appengine/py2 doesn't like encoding argument
@@ -64,7 +65,7 @@ def get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
                                           label='value'):
     for cn in possible_keys:
         try:
-            return dict_from_csv_row[cn]
+            return dict_from_csv_row[cn].strip()
         except KeyError:
             pass # Try the next one
     else:
@@ -141,7 +142,7 @@ class Constituency(object):
 
 # Do we need the party class, or can we just use strings based on the 'Party
 # Identifer' (sic) column?  I'm assuming the latter for now
-class Party(object):
+class XXX_Party(object):
     def __init__(self, dict_from_csv_row):
         try:
             # Another error I live in hope that they fix
@@ -160,14 +161,28 @@ class Party(object):
 
 class CandidateResult(object):
     def __init__(self, dict_from_csv_row, ons_to_con_map):
-        ons_code = dict_from_csv_row['ONS Code'].strip()
+        # ons_code = dict_from_csv_row['ONS Code'].strip() # 2017 only
+        ons_code = get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['ONS Code', 'Constituency ID', 'Constituency ID '],
+            'ONS Code')
         self.constituency = ons_to_con_map[ons_code]
+        OLD_CODE_FOR_2017_ONLY = """
         try:
             self.party = dict_from_csv_row['Party Identifier'].strip()
         except KeyError:
             self.party = dict_from_csv_row['Party Identifer'].strip()
         self.valid_votes = intify(dict_from_csv_row['Valid votes'])
-        # TODO: Candidate name
+        """
+        self.party = get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['Party Identifier', 'Party Identifer', 'Party name identifier'],
+            'Party ID')
+        self.valid_votes = intify(get_value_from_multiple_possible_keys(
+            dict_from_csv_row,
+            ['Valid votes', 'Votes'],
+            'Votes'))
+        # TODO (maybe?): Candidate name
 
     def __repr__(self):
         return '%s got %d votes in %s' % (self.party, self.valid_votes,
@@ -248,6 +263,25 @@ def sniff_admin_csv_for_ignorable_lines(admin_csv):
         # print(line_bits)
     raise IOError('Could not determine skippable lines in %s' % (admin_csv))
 
+def is_blank_row(row_dict):
+    """
+    Some of the CSVs have blank or semi-blank rows (e.g. a summary count of
+    all votes in the 2015 RESULTS.csv file).  This will return True if the
+    supplied CSVDictReader row dictionary is one such.
+
+    NB: This (ab)uses the fact that both constituency and results CSVs have
+    "Constituency"/"Constituency Name" columns, which might not be the case
+    for future files.
+    """
+    try:
+        con_name = row_dict['Constituency']
+    except KeyError:
+        con_name = row_dict['Constituency Name']
+    if con_name and con_name != '':
+        return False
+    else:
+        return True
+
 
 def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
     """
@@ -270,11 +304,7 @@ def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
             # pdb.set_trace()
             # Note extraneous trailing space on 'Electorate ' :-(
             # print("%d %s %s" % (i, row['Constituency'], row['Electorate ']))
-            try:
-                con_name = row['Constituency']
-            except KeyError:
-                con_name = row['Constituency Name']
-            if con_name: # avoid blank rows
+            if not is_blank_row(row):
                 con = Constituency(row)
                 if not con.region:
                     if con.country == 'England':
@@ -289,6 +319,23 @@ def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
     # return ons_to_con_map
     return ret
 
+def sniff_results_csv_for_ignorable_lines(results_csv):
+    """
+    Given a results CSV, read through the first few lines to work out how
+    many are ignorable for the csv.DictReader, and return that number of lines
+    (which may well be zero).
+
+    Note this is currently functionally identical to sniff_admin_csv_for_ignorable_lines()
+    due to both files having Constituency/Constituency Name columns.
+    """
+
+    for skippable_lines, line in enumerate(open(results_csv, 'r', **csv_reader_kwargs)):
+        line_bits = set([z.strip().lower() for z in line.split(',')])
+        if 'constituency' in line_bits or 'constituency name' in line_bits:
+            # Q: is the file properly closed?  It doesn't seem to matter...
+            return skippable_lines
+        # print(line_bits)
+    raise IOError('Could not determine skippable lines in %s' % (results_csv))
 
 def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
     """
@@ -306,16 +353,15 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
             con.euref = euref_data[con.ons_code]
 
     raw_results = defaultdict(list)
+    skippable_lines = sniff_results_csv_for_ignorable_lines(results_csv)
     with open(results_csv, 'r', **csv_reader_kwargs) as inputstream:
-        # Ignore the first row, the useful headings are on the second row
-        _ = inputstream.readline()
+        for _ in range(skippable_lines):
+            xxx = inputstream.readline()
         reader = csv.DictReader(inputstream)
         for i, row in enumerate(reader):
-            # pdb.set_trace()
-            # Note extraneous trailing space on 'Electorate ' :-(
-            # print("%d %s %s" % (i, row['Constituency'], row['Electorate ']))
-            can_res = CandidateResult(row, ons_to_con_map)
-            raw_results[can_res.constituency.ons_code].append(can_res)
+            if not is_blank_row(row):
+                can_res = CandidateResult(row, ons_to_con_map)
+                raw_results[can_res.constituency.ons_code].append(can_res)
 
 
     processed_results = []
