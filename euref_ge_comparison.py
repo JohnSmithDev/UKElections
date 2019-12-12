@@ -14,12 +14,14 @@ import re
 import sys
 
 
-from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
+from ec_data_reader import (load_and_process_data, ADMIN_CSV, RESULTS_CSV,
+                            load_region_data)
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify, output_file
 from helpers import short_region
 
 from settings import (INCLUDES_DIR, OUTPUT_DIR, STATIC_DIR)
+from ge_config import GENERAL_ELECTIONS
 
 DEBUG_MODE = False
 
@@ -54,7 +56,7 @@ class EnhancedConstituencyResult(object):
     outputting an SVG
     """
 
-    def __init__(self, conres):
+    def __init__(self, conres, ruling_parties=RULING_PARTIES):
         self.conres = conres
         self.con = conres.constituency
         self.winner_slug = slugify(conres.winning_party)
@@ -66,7 +68,7 @@ class EnhancedConstituencyResult(object):
         self.region = self.con.region or self.con.country
 
         self.winning_margin = conres.margin_pc
-        if not ABSOLUTE_MARGIN_PC and conres.winning_party not in RULING_PARTIES:
+        if not ABSOLUTE_MARGIN_PC and conres.winning_party not in ruling_parties:
             self.winning_margin = -conres.margin_pc
 
         self.winner_votes = conres.results[0].valid_votes
@@ -96,7 +98,7 @@ class EnhancedConstituencyResult(object):
         data-leave-known-figure="{'Y' if self.con.euref.known_result else 'N'}"
         title="{self.con.name}"'''
 
-def output_svg(out, data):
+def output_svg(out, data, year, ruling_parties=RULING_PARTIES):
     out.write(f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
                 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -105,9 +107,9 @@ def output_svg(out, data):
      width="{OVERALL_WIDTH}" height="{OVERALL_HEIGHT}"
      id="election" class="js-disabled">
 ''')
-    out.write('<title>Constituency results in 2017 General Election and 2016 EU Referendum</title>\n')
+    out.write(f'<title>Constituency results in {year} General Election and 2016 EU Referendum</title>\n')
     out.write('<description>Scatter plot of constituency results '
-              'in 2017 General Election and 2016 EU Referendum</description>\n')
+              f'in {year} General Election and 2016 EU Referendum</description>\n')
 
     out.write('''<style type="text/css">\n<![CDATA[\n''')
     output_file(out, os.path.join(STATIC_DIR, 'party_and_region_colours.css'))
@@ -119,7 +121,8 @@ def output_svg(out, data):
         out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
         class="debug2" />''')
 
-    output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'))
+    output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'),
+                value_map={'ge_year': year})
 
     # So leave covered a range of (80-20)*10 = 600 pixels (vertical)
     # and GE margin covered a range of 110*10 = 1100 pixels (vertical)
@@ -195,7 +198,7 @@ def output_svg(out, data):
     prev_region = None
     for i, conres in enumerate(sorted(election_data,
                                       key=lambda z: z.constituency.country_and_region)):
-        ecr = EnhancedConstituencyResult(conres)
+        ecr = EnhancedConstituencyResult(conres, ruling_parties=ruling_parties)
 
         con = conres.constituency
         # slugified_country = slugify(con.country)
@@ -218,7 +221,7 @@ def output_svg(out, data):
         y_offset = calculate_leave_pc_offset(con.euref.leave_pc)
 
         winning_margin = conres.margin_pc
-        if not ABSOLUTE_MARGIN_PC and conres.winning_party not in RULING_PARTIES:
+        if not ABSOLUTE_MARGIN_PC and conres.winning_party not in ruling_parties:
             winning_margin = -conres.margin_pc
         x_offset = Decimal('%.1f' % (calculate_fptp_margin_offset(winning_margin)))
 
@@ -399,17 +402,41 @@ def output_svg(out, data):
 
 
 if __name__ == '__main__':
+    year = None
     if len(sys.argv) > 1:
-        output_filename = sys.argv[1]
+        try:
+            year = int(sys.argv[1])
+            output_filename = os.path.join(OUTPUT_DIR, '%s_%d.svg' % (PROJECT, year))
+        except ValueError:
+            output_filename = sys.argv[1]
     else:
         output_filename = os.path.join(OUTPUT_DIR, '%s.svg' % (PROJECT))
 
+    OLD = """
     with open(os.path.join('intermediate_data', 'regions.json')) as regionstream:
         regions = json.load(regionstream)
+    """
+    regions = load_region_data(add_on_countries=True)
     euref_data = load_and_process_euref_data()
 
-    election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
-                                          euref_data)
+    #election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
+    #                                      euref_data)
+    OLD_2017 = """
+    election_data = load_and_process_data(
+        "source_data/_2015_ge_/CONSTITUENCY.csv",
+        "source_data/_2015_ge_/RESULTS.csv",
+        regions,
+        euref_data)
+    """
+    GE_YEAR = year or 2017
+    election_data = load_and_process_data(
+        GENERAL_ELECTIONS[GE_YEAR]['constituencies_csv'],
+        GENERAL_ELECTIONS[GE_YEAR]['results_csv'],
+        regions,
+        euref_data)
+
 
     with open(output_filename, 'w') as output_stream:
-        output_svg(output_stream, election_data)
+        output_svg(output_stream, election_data, GE_YEAR,
+                   ruling_parties=GENERAL_ELECTIONS[GE_YEAR]['ruling_parties']
+        )

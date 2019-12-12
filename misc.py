@@ -31,8 +31,14 @@ def percentify(s):
     return Decimal(s.replace('%', ''))
 
 
-def output_file(output, filename):
+def output_file(output, filename, value_map=None):
     output.flush()
-    with open(filename, mode='rb') as copystream:
+    # Hmm - this was previously opened with "mode='rb'" - however that stops
+    # us from using .format_map().  Was that a Python 2 hack?  If so, I'll
+    # remove it, but keep this comment in case there's more to it...
+    with open(filename) as copystream:
         data = copystream.read()
-        output.buffer.write(data)
+        if value_map:
+            data = data.format_map(value_map)
+        # This was output.buffer.write(data) when mode='rb' was enabled
+        output.write(data)

@@ -1,6 +1,6 @@
 <!-- this assumes the SVG is roughly full HD (1920x1080) in size -->
 <text x="110" y="20" class="h1">
-  Scatter plot of constituency results in 2017 General Election and 2016 EU Referendum
+  Scatter plot of constituency results in {ge_year} General Election and 2016 EU Referendum
 </text>
 
 <g id="hover-details">
@@ -50,7 +50,7 @@
 
 <text x="1420" y="37" class="credits">Data:</text>
 <text x="1420" y="49" class="credits">
-  2017 General Election Data: <a xlink:href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>
+  {ge_year} General Election Data: <a xlink:href="https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports">Electoral Commission</a>
 </text>
 <text x="1420" y="61" class="credits">
   2016 Referendum Constituency Data/Estimates: <a xlink:href="https://commonslibrary.parliament.uk/parliament-and-elections/elections-elections/brexit-votes-by-constituency/">Parliament.uk</a>

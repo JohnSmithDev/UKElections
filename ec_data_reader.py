@@ -174,10 +174,11 @@ class CandidateResult(object):
             self.party = dict_from_csv_row['Party Identifer'].strip()
         self.valid_votes = intify(dict_from_csv_row['Valid votes'])
         """
-        self.party = get_value_from_multiple_possible_keys(
+        raw_party = get_value_from_multiple_possible_keys(
             dict_from_csv_row,
             ['Party Identifier', 'Party Identifer', 'Party name identifier'],
             'Party ID')
+        self.party = CANONICAL_PARTY_NAMES.get(raw_party, raw_party)
         self.valid_votes = intify(get_value_from_multiple_possible_keys(
             dict_from_csv_row,
             ['Valid votes', 'Votes'],
