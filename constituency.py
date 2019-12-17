@@ -122,8 +122,8 @@ class Constituency(object):
         return COUNTRY_CODE_PREFIXES[prefix]
 
     @property
-    def country_and_region(self):
-        if self.region:
+    def country_and_region(self): # perhaps "country_and_or_region" might be better?
+        if self.region and self.country != self.region:
             return '%s - %s' % (self.country, self.region)
         else:
             return self.country
