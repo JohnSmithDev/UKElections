@@ -122,6 +122,7 @@ text#constituency-details {
 .second-place-alliance { stroke: #f6cb2f; }
 
 .second-place-independent { stroke: #dddddd; }
+.second-place-other { stroke: #444444; }
 .second-place-speaker { stroke: white; }
 .second-place-nhap { stroke: #0071bb; } /* See South West Surrey 2017 */
 

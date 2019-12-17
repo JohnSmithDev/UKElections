@@ -78,6 +78,7 @@
 .constituency.party-alliance { fill: #f6cb2f; }
 
 .constituency.party-independent { fill: #dddddd; }
+.constituency.party-other { fill: #444444; } /* Birkenhead and Ashfield in GE 2019 */
 .constituency.party-speaker { fill: white; }
 .constituency.party-nhap { fill: #0071bb; }
 
