@@ -335,7 +335,9 @@ def output_svg(out, data, year, ruling_parties=RULING_PARTIES, value_map=None):
                            width=120)
 
 
-    y_pos += 40
+    y_pos += 30 # 40 is OK for 2017, but other GEs have more parties
+
+
     out.write('<g class="hide-if-no-js">\n')
     output_text_button(out, x_pos, y_pos, line_spacing, 'All regions',
                   element_id='js-level-all', classes=['js-level-button'],
