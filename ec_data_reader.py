@@ -20,6 +20,11 @@ PYTHON_MAJOR_VERSION = sys.version_info[0]
 
 from misc import slugify, intify, percentify, CSV_ENCODING
 from canonical_party_names import CANONICAL_PARTY_NAMES
+from regions import (COUNTRY_CODE_PREFIXES, load_region_data,
+                     constituency_name_to_region)
+from constituency import (Constituency, get_value_from_multiple_possible_keys,
+                          MissingColumnError, is_blank_row,
+                          load_constituencies_from_admin_csv)
 
 if PYTHON_MAJOR_VERSION == 2:
     # appengine/py2 doesn't like encoding argument
@@ -31,13 +36,13 @@ else:
 SOURCE_DIR = 'source_data'
 
 
-# TODO: deprecate these next two in favour of DATA_SETS
+# TODO: deprecate these next two in favour of ge_config.GENERAL_ELECTIONS
 ADMIN_CSV = os.path.join('source_data', '2017 UKPGE electoral data 3.csv')
 RESULTS_CSV = os.path.join('source_data', '2017 UKPGE electoral data 4.csv')
 
 
 # ONS Code prefixes - https://en.wikipedia.org/wiki/ONS_coding_system#Current_GSS_coding_system
-COUNTRY_CODE_PREFIXES = {
+XXX_COUNTRY_CODE_PREFIXES = {
     'E14': 'England',
     'W07': 'Wales',
     'S14': 'Scotland',
@@ -46,22 +51,9 @@ COUNTRY_CODE_PREFIXES = {
 
 
 
-def clean_constituency_name(s):
-    """
-    # Clean up the following (why are they like this???):
-    # ['Brecon and Radnorshire 5', 'Cardiff North 5',
-    # 'Cardiff South and Penarth 5', 'Merthyr Tydfil and Rhymney 5',
-    # 'Ogmore 5', 'Pontypridd 5', 'Vale of Glamorgan 5']
-    # Plus Swansea East6...
-    """
-    name = re.sub('\s*\d+$', '', s.strip())
-    return name
 
 
-class ConstituencyCreationError(Exception):
-    pass
-
-def get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
+def xxx_get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
                                           label='value'):
     for cn in possible_keys:
         try:
@@ -69,11 +61,11 @@ def get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
         except KeyError:
             pass # Try the next one
     else:
-        raise ConstituencyCreationError('Could not find %s, tried %s' %
-                                        (label, column_names))
+        raise MissingColumnError('Could not find %s, tried %s' %
+                                 (label, possible_keys))
 
 
-class Constituency(object):
+class XXX_Constituency(object):
     """
     Given a CSVReader row for an "ADMINISTRATIVE DATA" or CONSTITUENCY.CSV row,
     return an object representing that constituency.
@@ -84,27 +76,32 @@ class Constituency(object):
     def __init__(self, dict_from_csv_row, euref_data=None):
         self.ons_code = get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['ONS Code', 'Constituency ID'],
+            ['ONS Code', 'Constituency ID', 'code'],
             'ONS Code')
-        self.pa_number = int(get_value_from_multiple_possible_keys(
-            dict_from_csv_row,
-            # Note space at end of second element, also lower case "Association"
-            ['Press association number', 'Press association number ', 'PANO'],
-            'PA Number'))
+        # We don't *currently* use pa_number, so don't blow up if it's not there
+        try:
+            self.pa_number = int(get_value_from_multiple_possible_keys(
+                dict_from_csv_row,
+                # Note space at end of second element, also lower case "Association"
+                ['Press association number', 'Press association number ', 'PANO'],
+                'PA Number'))
+        except MissingColumnError:
+            self.pa_number = None
 
         name = get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['Constituency', 'Constituency Name'],
+            ['Constituency', 'Constituency Name', 'constituency'],
             'Constituency Name')
         self.name = clean_constituency_name(name)
 
         self.electorate = intify(get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['Electorate', 'Electorate '], # Extraneous space is in 2017 data
+            ['Electorate', 'Electorate ', 'electorate'], # Extraneous space is in 2017 data
             'Electorate'))
         self.valid_votes = intify(get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['Total number of valid votes counted', 'Valid Votes'],
+            # Q: Does "turnout" (in 2019 file) include invalid votes?
+            ['Total number of valid votes counted', 'Valid Votes', 'turnout'],
             'Valid Votes'))
 
         # 2015 CSV has a Region column, 2017 does not.
@@ -221,104 +218,7 @@ class ConstituencyResult(object):
                                           self.winning_margin)
 
 
-def load_region_data(fn=None, add_on_countries=False):
-    """
-    Return a dictionary mapping region to a list of constituency names
-    """
-    if not fn:
-        fn = os.path.join('intermediate_data', 'regions.json')
-    with open(fn) as regionstream:
-        regions = json.load(regionstream)
-    if add_on_countries:
-        regions['Scotland'] = 'Scotland'
-        regions['Wales'] = 'Wales'
-        regions['Northern Ireland'] = 'Northern Ireland'
 
-    return regions
-
-def constituency_name_to_region(region_data, slugify_constituency_name=True):
-    """
-    Reverse mapping of the output from load_region_data() i.e. constituency name->region
-    By default the constituency name key is slugified
-    """
-    con_to_region = {} # reverse map constituency name
-    for reg, con_list in region_data.items():
-        for con in con_list:
-            k = (slugify(con) if slugify_constituency_name else con)
-            con_to_region[k] = reg
-    return con_to_region
-
-
-def sniff_admin_csv_for_ignorable_lines(admin_csv):
-    """
-    Given an admin CSV, read through the first few lines to work out how
-    many are ignorable for the csv.DictReader, and return that number of lines
-    (which may well be zero)
-    """
-
-    for skippable_lines, line in enumerate(open(admin_csv, 'r', **csv_reader_kwargs)):
-        line_bits = set([z.strip().lower() for z in line.split(',')])
-        if 'constituency' in line_bits or 'constituency name' in line_bits:
-            # Q: is the file properly closed?  It doesn't seem to matter...
-            return skippable_lines
-        # print(line_bits)
-    raise IOError('Could not determine skippable lines in %s' % (admin_csv))
-
-def is_blank_row(row_dict):
-    """
-    Some of the CSVs have blank or semi-blank rows (e.g. a summary count of
-    all votes in the 2015 RESULTS.csv file).  This will return True if the
-    supplied CSVDictReader row dictionary is one such.
-
-    NB: This (ab)uses the fact that both constituency and results CSVs have
-    "Constituency"/"Constituency Name" columns, which might not be the case
-    for future files.
-    """
-    try:
-        con_name = row_dict['Constituency']
-    except KeyError:
-        con_name = row_dict['Constituency Name']
-    if con_name and con_name != '':
-        return False
-    else:
-        return True
-
-
-def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
-    """
-    Return a list of Constituency objects
-    """
-    # ons_to_con_map = {}
-
-    regions = set(con_to_region_map.values())
-    slug_to_canonical_region_map = dict((slugify(r), r) for r in regions)
-
-    ret = []
-    skippable_lines = sniff_admin_csv_for_ignorable_lines(admin_csv)
-
-    with open(admin_csv, 'r', **csv_reader_kwargs) as inputstream:
-        # Ignore the first two rows, the useful headings are on the third row
-        for _ in range(skippable_lines):
-            xxx = inputstream.readline()
-        reader = csv.DictReader(inputstream)
-        for i, row in enumerate(reader):
-            # pdb.set_trace()
-            # Note extraneous trailing space on 'Electorate ' :-(
-            # print("%d %s %s" % (i, row['Constituency'], row['Electorate ']))
-            if not is_blank_row(row):
-                con = Constituency(row)
-                if not con.region:
-                    if con.country == 'England':
-                        slug_con = slugify(con.name)
-                        try:
-                            con.region = con_to_region_map[slug_con]
-                        except KeyError as err:
-                            logging.error('No region found for %s/%s' % (con.name, slug_con))
-                else:
-                    con.region = slug_to_canonical_region_map[slugify(con.region)]
-                ret.append(con)
-    # return ons_to_con_map
-    return ret
 
 def sniff_results_csv_for_ignorable_lines(results_csv):
     """
