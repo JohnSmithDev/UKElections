@@ -158,22 +158,14 @@ class XXX_Party(object):
 
 class CandidateResult(object):
     def __init__(self, dict_from_csv_row, ons_to_con_map):
-        # ons_code = dict_from_csv_row['ONS Code'].strip() # 2017 only
         ons_code = get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['ONS Code', 'Constituency ID', 'Constituency ID '],
+            ['ONS Code', 'Constituency ID', 'Constituency ID ', 'code'],
             'ONS Code')
         self.constituency = ons_to_con_map[ons_code]
-        OLD_CODE_FOR_2017_ONLY = """
-        try:
-            self.party = dict_from_csv_row['Party Identifier'].strip()
-        except KeyError:
-            self.party = dict_from_csv_row['Party Identifer'].strip()
-        self.valid_votes = intify(dict_from_csv_row['Valid votes'])
-        """
         raw_party = get_value_from_multiple_possible_keys(
             dict_from_csv_row,
-            ['Party Identifier', 'Party Identifer', 'Party name identifier'],
+            ['Party Identifier', 'Party Identifer', 'Party name identifier', 'party'],
             'Party ID')
         self.party = CANONICAL_PARTY_NAMES.get(raw_party, raw_party)
         self.valid_votes = intify(get_value_from_multiple_possible_keys(
@@ -238,6 +230,7 @@ def sniff_results_csv_for_ignorable_lines(results_csv):
         # print(line_bits)
     raise IOError('Could not determine skippable lines in %s' % (results_csv))
 
+
 def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
     """
     Return a list of ConstituencyResult objects
@@ -277,6 +270,59 @@ def load_and_process_data(admin_csv, results_csv, regions, euref_data=None):
     return sorted(processed_results, key=lambda z: z.constituency.name)
     # return processed_results
 
+def load_and_process_data_2019(data_csv, regions, euref_data=None):
+    """
+    Return a list of ConstituencyResult objects.
+
+    TODO: this is a dirty hack of the above function, properly refactor
+    """
+    con_to_region = constituency_name_to_region(regions)
+
+    constituency_list = load_constituencies_from_admin_csv(data_csv, con_to_region)
+
+    ons_to_con_map = {}
+    for con in constituency_list:
+        ons = con.ons_code
+        ons_to_con_map[ons] = con
+        if euref_data:
+            con.euref = euref_data[con.ons_code]
+
+    raw_results = defaultdict(list)
+    # skippable_lines = sniff_results_csv_for_ignorable_lines(results_csv)
+    skippable_lines = 0
+    with open(data_csv, 'r', **csv_reader_kwargs) as inputstream:
+        for _ in range(skippable_lines):
+            xxx = inputstream.readline()
+        reader = csv.DictReader(inputstream)
+        for i, row in enumerate(reader):
+            if not is_blank_row(row):
+                unsorted_results = []
+                for party in 'all,brx,con,dup,grn,ind,lab,lib,oth,plc,sdl,snf,snp,spk,ukp,uup'.split(','):
+                    fake_row_dict = {
+                        'code': row['code'],
+                        'constituency': row['constituency'],
+                        'party': party,
+                        'Valid votes': row[party]
+                        }
+                    can_res = CandidateResult(fake_row_dict, ons_to_con_map)
+                    unsorted_results.append(can_res)
+                raw_results[can_res.constituency.ons_code] = sorted(
+                    unsorted_results,
+                    key=lambda z:-z.valid_votes)
+
+
+    processed_results = []
+    # Not sure whether this sort gives better results than the one below
+    for _, raw_res in raw_results.items():
+        processed_results.append(ConstituencyResult(raw_res))
+
+    # Python 3 IIRC honours the insert order of a dict, so we didn't need to sort
+    # Python 2 doesn't, hence the sorted() here to ensure some consistency
+    # Note that this ordering differs from the one that was inherited from the
+    # CSV (which I think was region, then constituency name)
+    return sorted(processed_results, key=lambda z: z.constituency.name)
+    # return processed_results
+
 
 if __name__ == '__main__':
     admin_csv = ADMIN_CSV
@@ -291,7 +337,10 @@ if __name__ == '__main__':
     from euref_data_reader import load_and_process_euref_data
     euref_data = load_and_process_euref_data()
 
-    results = load_and_process_data(admin_csv, results_csv, region_data, euref_data)
+    if admin_csv == results_csv:
+        results = load_and_process_data_2019(admin_csv, region_data, euref_data)
+    else:
+        results = load_and_process_data(admin_csv, results_csv, region_data, euref_data)
     print(results[0])
     print(results[0].constituency)
     print(results[0].constituency.euref)

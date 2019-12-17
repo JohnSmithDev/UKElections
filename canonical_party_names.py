@@ -29,24 +29,44 @@ make this too prone to breakage.
 # * Independents, speaker, etc
 
 CANONICAL_PARTY_NAMES = {
+    'Conservative Party': 'Conservative',
+    'Conservative Party Candidate': 'Conservative',
     'Labour and Co-operative': 'Labour',
     # The Wikipedia page and "www.libdems.org.uk" imply plural is the correct form
     'Liberal Democrat': 'Liberal Democrats',
     'Green Party': 'Green',
     'UK Independence Party': 'UKIP',
 
+    'brx': 'Brexit',
+    'con': 'Conservative',
+    'ind': 'Independent',
+    'grn': 'Green',
+    'lab': 'Labour',
+    'lib': 'Liberal Democrats',
+    'oth': 'Other',
+    'spk': 'Speaker',
+    'ukp': 'UKIP',
+
     'Scottish National Party': 'SNP',
 
-    # SF ASCIIfication is is not ideal, but makes life easier (NB: 2015 CSV
-    # uses the non-accented version
-    # TODO: HTML entity variant?
+    'plc': 'Plaid Cymru',
+    'snp': 'SNP',
+
     'Democratic Unionist Party': 'DUP',
     # Noe this is different from "Lewisham People Before Profit"
     # https://en.wikipedia.org/wiki/People_Before_Profit
     # https://en.wikipedia.org/wiki/Lewisham_People_Before_Profit
     'People Before Profit Alliance': 'PBPA',
+    # SF ASCIIfication is is not ideal, but makes life easier (NB: 2015 CSV
+    # uses the non-accented version
+    # TODO: HTML entity variant?
     'Sinn Féin': 'Sinn Fein',
     'Social Democratic and Labour Party': 'SDLP',
     'Traditional Unionist Voice': 'TUV',
-    'Ulster Unionist Party': 'UUP'
+    'Ulster Unionist Party': 'UUP',
+
+    'dup': 'DUP',
+    'sdl': 'SDLP',
+    'snf': 'Sinn Fein',
+    'uup': 'UUP'
 }

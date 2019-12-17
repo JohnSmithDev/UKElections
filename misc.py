@@ -20,9 +20,12 @@ def slugify(str):
 
 def intify(s):
     """
-    Convert a string (which may have commas in) to an int
+    Convert a string (which may have commas in) to an int.
+
+    The intermediate float casting is to handle scientific notation like
+    "9.00E+03" in the 2019 Brigg and Google data.
     """
-    return int(s.replace(',', ''))
+    return int(float(s.replace(',', '')))
 
 def percentify(s):
     """
