@@ -25,7 +25,7 @@ GENERAL_ELECTIONS = {
         # write some new stuff to parse the results
         # 'constituencies_csv': os.path.join(SOURCE_DIR, '2017 UKPGE electoral data 3.csv'),
         'constituencies_csv': os.path.join(SOURCE_DIR, '_2019_ge_', 'GE-2019-results.csv'),
-        'combined_csv': os.path.join(SOURCE_DIR, '_2019_ge_', 'GE-2019-results.csv'),
+        'results_csv': os.path.join(SOURCE_DIR, '_2019_ge_', 'GE-2019-results.csv'),
         'ruling_parties': ('Conservative',),
         'data_credit': '@eldenvo',
         'data_url': 'https://twitter.com/eldenvo/status/1205525303092756482'

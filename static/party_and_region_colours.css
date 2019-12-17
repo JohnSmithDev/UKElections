@@ -22,6 +22,7 @@
   /* New for 2019 */
   --tig: #222221; /* or is it "cuk"?  Wiki page uses both... */
   --brexit-party: #12b6cf;
+  --brexit: #12b6cf;
 
   --snp: #fef987;
   --plaid-cymru: #008142;
@@ -63,10 +64,10 @@
 .constituency.party-labour { fill: #dc241f; }
 .constituency.party-liberal-democrats { fill: #faa61a; }
 /* New parties for 2019 */
-.constituency.party-brexit-party { fill: var(--tig); }
-.constituency.party-tig { fill: var(--tig); }
-.constituency.party-cuk { fill: var(--tig); }
-
+.constituency.party-brexit-party, .constituency.party-brexit
+  { fill: #12b6cf; }
+.constituency.party-tig, .constituency.party-cuk
+  { fill: #222221; }
 .constituency.party-snp { fill: #fef987; }
 .constituency.party-plaid-cymru { fill: #008142; }
 
@@ -76,9 +77,9 @@
 .constituency.party-uup { fill: #48a5ee; }
 .constituency.party-alliance { fill: #f6cb2f; }
 
-.constituency.party-independent { fill: var(--independent); }
+.constituency.party-independent { fill: #dddddd; }
 .constituency.party-speaker { fill: white; }
-.constituency.party-nhap { fill: var(--nhap); }
+.constituency.party-nhap { fill: #0071bb; }
 
 .constituency.party-loser { fill: #666; } /* "darkgrey" isn't dark enough for me */
 

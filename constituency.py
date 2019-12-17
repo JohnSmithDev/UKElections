@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Extracted from ec_data_reader.py
+Originally extracted from ec_data_reader.py
 """
 
 import csv
 import logging
+import pdb
 import re
 import sys
 
@@ -181,7 +182,25 @@ def is_blank_row(row_dict):
         return True
     """
 
-def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
+def get_region_for_constituency(con, con_to_region_map, quiet=False):
+    """
+    Given a Constituency object, use any of the various unique IDs to get a
+    region from the provided dictionary.
+    """
+    if con.country and con.country != 'England':
+        return con.country
+    poss_keys = [str(getattr(con, prop)) for prop in ('name', 'ons_code', 'pa_number')]
+    for val in poss_keys:
+        try:
+            return con_to_region_map[val]
+        except KeyError:
+            pass
+    if not quiet:
+        logging.warning('No region found for %s, trying slugified name...' % (poss_keys))
+    slug = slugify(con.name)
+    return con_to_region_map[slug]
+
+def load_constituencies_from_admin_csv(admin_csv, con_to_region_map, quiet=False):
     """
     Return a list of Constituency objects
     """
@@ -205,12 +224,15 @@ def load_constituencies_from_admin_csv(admin_csv, con_to_region_map):
             if not is_blank_row(row):
                 con = Constituency(row)
                 if not con.region:
+                    con.region = get_region_for_constituency(con, con_to_region_map, quiet)
+                    ORIG = """
                     if con.country == 'England':
                         slug_con = slugify(con.name)
                         try:
                             con.region = con_to_region_map[slug_con]
                         except KeyError as err:
                             logging.error('No region found for %s/%s' % (con.name, slug_con))
+                    """
                 else:
                     con.region = slug_to_canonical_region_map[slugify(con.region)]
                 ret.append(con)

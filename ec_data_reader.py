@@ -21,7 +21,7 @@ PYTHON_MAJOR_VERSION = sys.version_info[0]
 from misc import slugify, intify, percentify, CSV_ENCODING
 from canonical_party_names import CANONICAL_PARTY_NAMES
 from regions import (COUNTRY_CODE_PREFIXES, load_region_data,
-                     constituency_name_to_region)
+                     constituency_name_to_region, constituency_id_mappings)
 from constituency import (Constituency, get_value_from_multiple_possible_keys,
                           MissingColumnError, is_blank_row,
                           load_constituencies_from_admin_csv)
@@ -276,7 +276,9 @@ def load_and_process_data_2019(data_csv, regions, euref_data=None):
 
     TODO: this is a dirty hack of the above function, properly refactor
     """
-    con_to_region = constituency_name_to_region(regions)
+    regions = load_region_data() # NOTE WE GET RID OF THE COUNTRY HACKS!!!!!
+    con_name_to_ids = constituency_id_mappings()
+    con_to_region = constituency_name_to_region(regions, key_mappings=con_name_to_ids)
 
     constituency_list = load_constituencies_from_admin_csv(data_csv, con_to_region)
 

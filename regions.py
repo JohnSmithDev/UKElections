@@ -66,7 +66,11 @@ def constituency_name_to_region(region_data, slugify_constituency_name=True,
     for reg, con_list in region_data.items():
         for con in con_list:
             if key_mappings:
-                for k in key_mappings[con]:
+                try:
+                    constituency_ids = key_mappings[con]
+                except KeyError:
+                    constituency_ids = key_mappings[slugify(con)]
+                for k in constituency_ids:
                     con_to_region[k] = reg
             else:
                 k = (slugify(con) if slugify_constituency_name else con)
@@ -77,11 +81,17 @@ DEFAULT_CONSTITUENCY_CSV = GENERAL_ELECTIONS[2017]['constituencies_csv']
 
 
 def constituency_id_mappings(constituency_csv=DEFAULT_CONSTITUENCY_CSV):
-    basic_regions = load_region_data(add_on_countries=True)
+    """
+    Return a dict mapping various unique identifiers for a constituency to the
+    set (well a list) of all those Ids)
+    """
+    # basic_regions = load_region_data(add_on_countries=True)
+    basic_regions = load_region_data()
     con_to_region = constituency_name_to_region(basic_regions)
 
     ge2017_data = load_constituencies_from_admin_csv(constituency_csv,
-                                                     con_to_region)
+                                                     con_to_region,
+                                                     quiet=True)
     c2ids_map = {}
     for con in ge2017_data:
         ids = [con.name, slugify(con.name),
@@ -89,5 +99,7 @@ def constituency_id_mappings(constituency_csv=DEFAULT_CONSTITUENCY_CSV):
         if con.pa_number:
              # Keep consistent with other values' type to allow for sorting
             ids.append(str(con.pa_number))
-        c2ids_map[con.name] = ids
+        # c2ids_map[con.name] = ids # Blows up on Weston-[Ss]uper-Mare, so use all IDs
+        for id in ids:
+            c2ids_map[id] = ids
     return c2ids_map

@@ -65,6 +65,7 @@ CANONICAL_PARTY_NAMES = {
     'Traditional Unionist Voice': 'TUV',
     'Ulster Unionist Party': 'UUP',
 
+    'all': 'Alliance',
     'dup': 'DUP',
     'sdl': 'SDLP',
     'snf': 'Sinn Fein',

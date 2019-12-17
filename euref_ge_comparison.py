@@ -14,7 +14,8 @@ import re
 import sys
 
 
-from ec_data_reader import (load_and_process_data, ADMIN_CSV, RESULTS_CSV,
+from ec_data_reader import (load_and_process_data, load_and_process_data_2019,
+                            ADMIN_CSV, RESULTS_CSV,
                             load_region_data)
 from euref_data_reader import load_and_process_euref_data
 from misc import slugify, output_file
@@ -382,11 +383,17 @@ if __name__ == '__main__':
     euref_data = load_and_process_euref_data()
 
     GE_YEAR = year or 2017
-    election_data = load_and_process_data(
-        GENERAL_ELECTIONS[GE_YEAR]['constituencies_csv'],
-        GENERAL_ELECTIONS[GE_YEAR]['results_csv'],
-        regions,
-        euref_data)
+    if year == 2019:
+        election_data = load_and_process_data_2019(
+            GENERAL_ELECTIONS[GE_YEAR]['constituencies_csv'],
+            regions,
+            euref_data)
+    else:
+        election_data = load_and_process_data(
+            GENERAL_ELECTIONS[GE_YEAR]['constituencies_csv'],
+            GENERAL_ELECTIONS[GE_YEAR]['results_csv'],
+            regions,
+            euref_data)
 
 
     with open(output_filename, 'w') as output_stream:
