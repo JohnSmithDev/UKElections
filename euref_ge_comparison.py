@@ -99,7 +99,7 @@ class EnhancedConstituencyResult(object):
         data-leave-known-figure="{'Y' if self.con.euref.known_result else 'N'}"
         title="{self.con.name}"'''
 
-def output_svg(out, data, year, ruling_parties=RULING_PARTIES):
+def output_svg(out, data, year, ruling_parties=RULING_PARTIES, value_map=None):
     out.write(f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
                 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -122,9 +122,10 @@ def output_svg(out, data, year, ruling_parties=RULING_PARTIES):
         out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
         class="debug2" />''')
 
+    if not value_map:
+        value_map = {}
     output_file(out, os.path.join(INCLUDES_DIR, 'brexit_fptp_static.svg'),
-                value_map={'ge_year': year})
-
+                value_map=value_map)
     # So leave covered a range of (80-20)*10 = 600 pixels (vertical)
     # and GE margin covered a range of 110*10 = 1100 pixels (vertical)
     # so increase from 10 to 15 now that we are using Full HD(ish) resolution
@@ -383,6 +384,7 @@ if __name__ == '__main__':
     euref_data = load_and_process_euref_data()
 
     GE_YEAR = year or 2017
+    ge_cfg = GENERAL_ELECTIONS[GE_YEAR]
     if year == 2019:
         election_data = load_and_process_data_2019(
             GENERAL_ELECTIONS[GE_YEAR]['constituencies_csv'],
@@ -396,7 +398,16 @@ if __name__ == '__main__':
             euref_data)
 
 
+    value_map = {'ge_year': year,
+                 'ge_data_credit': ge_cfg.get('data_credit', 'Electoral Commission'),
+                 'ge_data_url': ge_cfg.get('data_url',
+                                           'https://www.electoralcommission.org.uk/our-work/our-research/electoral-data/electoral-data-files-and-reports')
+    }
+
+
+
     with open(output_filename, 'w') as output_stream:
         output_svg(output_stream, election_data, GE_YEAR,
-                   ruling_parties=GENERAL_ELECTIONS[GE_YEAR]['ruling_parties']
+                   ruling_parties=GENERAL_ELECTIONS[GE_YEAR]['ruling_parties'],
+                   value_map=value_map
         )
