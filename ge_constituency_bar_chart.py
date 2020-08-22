@@ -19,11 +19,6 @@ from euref_ge_comparison import EnhancedConstituencyResult
 
 PROJECT = 'ge_constituency_bar_chart'
 
-def XXX_output_file(output, filename):
-    with open(filename) as copystream:
-        data = copystream.read()
-        output.write(data)
-
 OVERALL_WIDTH = 3600
 OVERALL_HEIGHT = 1600
 
@@ -55,20 +50,6 @@ def output_svg(out, data, sort_method='by_region'):
      id="election-bars" class="js-disabled">
 ''')
 
-    OUTDATED = """
-    out.write('''<style type="text/css">
-    <![CDATA[
-      .constituency {
-        stroke: black;
-        stroke-width: 1;
-        fill: lightgrey;
-      }
-    ''')
-    with open(os.path.join(STATIC_DIR, 'party_and_region_colours.css')) as copystream:
-        data = copystream.read()
-        out.write(data)
-    out.write(']]>\n  </style>\n')
-    """
 
     out.write('''<style type="text/css">\n<![CDATA[\n''')
     output_file(out, os.path.join(STATIC_DIR, 'party_and_region_colours.css'))
@@ -142,17 +123,10 @@ def output_svg(out, data, sort_method='by_region'):
 
     out.write(f'</g> <!-- end of #datapoints -->\n')
 
-
-    # I believe election_bars.js is a precursor to constituency_details.js,
-    # that looks to be the case from looking at (a) the emacs ~ backup file and
-    # (b) the embedded content in temp/test.svg.
-    # Basically all it did/does was add a mouseover listener to
-    # rect.constituency elements that innerHTMLed the title attribute to
-    # an empty text element.
     out.write('<script type="text/ecmascript">\n<![CDATA[\n')
-    # qoutput_file(out, 'election_bars.js')
 
     output_file(out, os.path.join(STATIC_DIR, 'constituency_details.js'))
+    # TODO: get the brexit_regions functionality working for these bar charts
     # output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
 
     out.write('document.querySelector("svg").classList.remove("js-disabled");\n')
@@ -171,17 +145,6 @@ if __name__ == '__main__':
 
     election_data = load_and_process_data(ADMIN_CSV, RESULTS_CSV, regions,
                                           euref_data)
-
-    BLAH = """
-    euref_dict = dict((z.ons_code, z.leave_pc) for z in euref_data)
-    for res in election_data:
-        try:
-            res.leave_pc = euref_dict[res.constituency.ons_code]
-        except KeyError as err:
-            print(err)
-            pdb.set_trace()
-    """
-
 
     for sort_method in SORT_OPTIONS.keys():
         output_filename = os.path.join('output', '%s_%s.svg' % (PROJECT, sort_method))
