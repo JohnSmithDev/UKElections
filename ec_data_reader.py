@@ -41,89 +41,8 @@ ADMIN_CSV = os.path.join('source_data', '2017 UKPGE electoral data 3.csv')
 RESULTS_CSV = os.path.join('source_data', '2017 UKPGE electoral data 4.csv')
 
 
-# ONS Code prefixes - https://en.wikipedia.org/wiki/ONS_coding_system#Current_GSS_coding_system
-XXX_COUNTRY_CODE_PREFIXES = {
-    'E14': 'England',
-    'W07': 'Wales',
-    'S14': 'Scotland',
-    'N06': 'Northern Ireland'
-    }
 
 
-
-
-
-def xxx_get_value_from_multiple_possible_keys(dict_from_csv_row, possible_keys,
-                                          label='value'):
-    for cn in possible_keys:
-        try:
-            return dict_from_csv_row[cn].strip()
-        except KeyError:
-            pass # Try the next one
-    else:
-        raise MissingColumnError('Could not find %s, tried %s' %
-                                 (label, possible_keys))
-
-
-class XXX_Constituency(object):
-    """
-    Given a CSVReader row for an "ADMINISTRATIVE DATA" or CONSTITUENCY.CSV row,
-    return an object representing that constituency.
-
-    Note that the CSV format is not consistent between elections :-(
-    """
-
-    def __init__(self, dict_from_csv_row, euref_data=None):
-        self.ons_code = get_value_from_multiple_possible_keys(
-            dict_from_csv_row,
-            ['ONS Code', 'Constituency ID', 'code'],
-            'ONS Code')
-        # We don't *currently* use pa_number, so don't blow up if it's not there
-        try:
-            self.pa_number = int(get_value_from_multiple_possible_keys(
-                dict_from_csv_row,
-                # Note space at end of second element, also lower case "Association"
-                ['Press association number', 'Press association number ', 'PANO'],
-                'PA Number'))
-        except MissingColumnError:
-            self.pa_number = None
-
-        name = get_value_from_multiple_possible_keys(
-            dict_from_csv_row,
-            ['Constituency', 'Constituency Name', 'constituency'],
-            'Constituency Name')
-        self.name = clean_constituency_name(name)
-
-        self.electorate = intify(get_value_from_multiple_possible_keys(
-            dict_from_csv_row,
-            ['Electorate', 'Electorate ', 'electorate'], # Extraneous space is in 2017 data
-            'Electorate'))
-        self.valid_votes = intify(get_value_from_multiple_possible_keys(
-            dict_from_csv_row,
-            # Q: Does "turnout" (in 2019 file) include invalid votes?
-            ['Total number of valid votes counted', 'Valid Votes', 'turnout'],
-            'Valid Votes'))
-
-        # 2015 CSV has a Region column, 2017 does not.
-        # However we have to watch out for minor inconsistencies e.g.
-        # "Yorkshire and [Th]he Humber"
-        self._region = dict_from_csv_row.get('Region', None)
-
-        # self.euref = euref_data[self.ons_code]
-        self.euref = euref_data or None
-
-
-    @property
-    def region(self):
-        return self._region
-
-    @region.setter
-    def region(self, val):
-        self._region = val
-
-    @property
-    def country(self):
-        prefix = self.ons_code[:3]
         return COUNTRY_CODE_PREFIXES[prefix]
 
     @property
@@ -137,23 +56,6 @@ class XXX_Constituency(object):
         return '%s (Electorate=%d)' % (self.name, self.electorate)
 
 
-# Do we need the party class, or can we just use strings based on the 'Party
-# Identifer' (sic) column?  I'm assuming the latter for now
-class XXX_Party(object):
-    def __init__(self, dict_from_csv_row):
-        try:
-            # Another error I live in hope that they fix
-            self.party_id = dict_from_csv_row['Party Identifier'].strip()
-        except KeyError:
-            self.party_id = dict_from_csv_row['Party Identifer'].strip()
-        # Note that the Party column (F) is more of a "free-text" thing that
-        # includes stuff like "The Conservative Party Candidate". "UK
-        # Independence Party (UKIP)", "Labour and Cooperative", etc
-        # Party Identifer (sic) seems to be a normalzed value, although still
-        # a bit irregular for Independents
-
-    def __repr__(self):
-        return self.party_id
 
 
 class CandidateResult(object):
