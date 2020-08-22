@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Output an SVG (stacked) bar chart of all constituencies
+Output multiple SVG (stacked) bar charts of all constituencies, sorted by
+various criteria.
 """
-
 
 import json
 import pdb
@@ -10,17 +10,24 @@ import os
 import re
 import sys
 
-
 from ec_data_reader import load_and_process_data, ADMIN_CSV, RESULTS_CSV
 from euref_data_reader import load_and_process_euref_data
-from misc import slugify
-from settings import *
+from misc import slugify, output_file
+from settings import (INCLUDES_DIR, OUTPUT_DIR, STATIC_DIR)
+from euref_ge_comparison import EnhancedConstituencyResult
 
-def output_file(output, filename):
+
+PROJECT = 'ge_constituency_bar_chart'
+
+def XXX_output_file(output, filename):
     with open(filename) as copystream:
         data = copystream.read()
         output.write(data)
 
+OVERALL_WIDTH = 3600
+OVERALL_HEIGHT = 1600
+
+DEBUG_MODE = True
 
 SORT_OPTIONS = {
     # General constituency properties that (largely) don't change
@@ -39,14 +46,16 @@ SORT_OPTIONS = {
     }
 
 def output_svg(out, data, sort_method='by_region'):
-    out.write('''<?xml version="1.0" encoding="UTF-8"?>
+    out.write(f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
                 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
-     width="3600" height="1600"
-     id="election">
+     width="{OVERALL_WIDTH}" height="{OVERALL_HEIGHT}"
+     id="election-bars" class="js-disabled">
 ''')
+
+    OUTDATED = """
     out.write('''<style type="text/css">
     <![CDATA[
       .constituency {
@@ -59,9 +68,19 @@ def output_svg(out, data, sort_method='by_region'):
         data = copystream.read()
         out.write(data)
     out.write(']]>\n  </style>\n')
+    """
 
+    out.write('''<style type="text/css">\n<![CDATA[\n''')
+    output_file(out, os.path.join(STATIC_DIR, 'party_and_region_colours.css'))
+    output_file(out, os.path.join(STATIC_DIR, 'misc.css'))
+    output_file(out, os.path.join(STATIC_DIR, 'euref_ge_comparison.css'))
+    out.write(']]>\n  </style>\n')
 
-    output_file(out, 'statictext.svg')
+    if DEBUG_MODE:
+        out.write(f'''<rect x="3" y="3" width="{OVERALL_WIDTH-10}" height="{OVERALL_HEIGHT-10}"
+        class="debug2" />''')
+
+    output_file(out, os.path.join(INCLUDES_DIR, 'ge_constituency_bar_chart_static.svg'))
 
     out.write(f'<text x="50" y="200">{sort_method}</text>\n')
 
@@ -75,19 +94,16 @@ def output_svg(out, data, sort_method='by_region'):
     CONSTITUENCY_Y_OFFSET = TOTAL_HEIGHT - MARGIN - COUNTRY_KEY_HEIGHT - \
                             REGION_KEY_HEIGHT - MARGIN
 
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.winning_margin)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.constituency.electorate)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.winning_result.valid_votes)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.margin_pc)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.constituency.country_and_region)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.winning_party)):
-    # for i, conres in enumerate(sorted(election_data, key=lambda z: z.constituency.euref.leave_pc)):
+    out.write('<g id="datapoints">\n')
     for i, conres in enumerate(sorted(election_data, key=SORT_OPTIONS[sort_method])):
+        ecr = EnhancedConstituencyResult(conres)
         con = conres.constituency
         slugified_country = slugify(con.country)
         x_offset = MARGIN + (i * COLUMN_WIDTH)
         height = int(con.electorate / Y_FACTOR)
         y_offset = CONSTITUENCY_Y_OFFSET - height
+
+        out.write(f'<g class="constituency" %s>\n' % (ecr.data_attributes_string()))
 
         out.write(f'<rect x="{x_offset}" y="{y_offset}" '
                   f'width="{COLUMN_WIDTH}" height="{height}" '
@@ -122,6 +138,9 @@ def output_svg(out, data, sort_method='by_region'):
             out.write(f'  <rect x="{x_offset}" y="{party_y_offset}" '
                       f'width="{COLUMN_WIDTH}" height="{party_height}" '
                       f'class="result constituency party-{slugified_party}" />\n')
+        out.write(f'</g> <!-- end of g.constituency -->\n')
+
+    out.write(f'</g> <!-- end of #datapoints -->\n')
 
 
     # I believe election_bars.js is a precursor to constituency_details.js,
@@ -132,6 +151,14 @@ def output_svg(out, data, sort_method='by_region'):
     # an empty text element.
     out.write('<script type="text/ecmascript">\n<![CDATA[\n')
     # qoutput_file(out, 'election_bars.js')
+
+    output_file(out, os.path.join(STATIC_DIR, 'constituency_details.js'))
+    # output_file(out, os.path.join(STATIC_DIR, 'brexit_regions.js'))
+
+    out.write('document.querySelector("svg").classList.remove("js-disabled");\n')
+    out.write('setupConstituencyDetails("hover-details", "#datapoints g.constituency");\n');
+
+
     out.write('\n]]>\n</script>')
     out.write('</svg>\n')
 
@@ -157,6 +184,6 @@ if __name__ == '__main__':
 
 
     for sort_method in SORT_OPTIONS.keys():
-        output_filename = os.path.join('output', 'ge2017_bars_%s.svg' % (sort_method))
+        output_filename = os.path.join('output', '%s_%s.svg' % (PROJECT, sort_method))
         with open(output_filename, 'w') as output_stream:
             output_svg(output_stream, election_data, sort_method=sort_method)
